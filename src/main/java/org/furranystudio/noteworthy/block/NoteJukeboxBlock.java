@@ -58,8 +58,12 @@ public class NoteJukeboxBlock extends Block implements EntityBlock {
     @Override
     @SuppressWarnings("unchecked")
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide() || type != ModBlockEntities.JUKEBOX.get()) {
+        if (type != ModBlockEntities.JUKEBOX.get()) {
             return null;
+        }
+        if (level.isClientSide()) {
+            return (BlockEntityTicker<T>) (BlockEntityTicker<NoteJukeboxBlockEntity>) (tickLevel, pos, tickState, jukebox) ->
+                jukebox.clientTick();
         }
         return (BlockEntityTicker<T>) (BlockEntityTicker<NoteJukeboxBlockEntity>) (tickLevel, pos, tickState, jukebox) ->
             jukebox.serverTick((ServerLevel) tickLevel, pos);

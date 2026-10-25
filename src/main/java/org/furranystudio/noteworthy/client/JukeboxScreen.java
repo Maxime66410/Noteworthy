@@ -2,7 +2,7 @@
  * File: JukeboxScreen.java
  * Author: Maxime66410
  * Created: 2026-10-24
- * Last Modified: 2026-10-24
+ * Last Modified: 2026-10-25
  */
 package org.furranystudio.noteworthy.client;
 
@@ -175,7 +175,7 @@ public class JukeboxScreen extends Screen {
         }
     }
 
-    private static String formatTime(int ticks) {
+    static String formatTime(int ticks) {
         int seconds = ticks / TICKS_PER_SECOND;
         return String.format(Locale.ROOT, "%d:%02d", seconds / 60, seconds % 60);
     }

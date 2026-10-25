@@ -2,7 +2,7 @@
  * File: NoteworthyNeoForge.java
  * Author: Maxime66410
  * Created: 2026-10-23
- * Last Modified: 2026-10-24
+ * Last Modified: 2026-10-25
  */
 package org.furranystudio.noteworthy.neoforge;
 
@@ -50,7 +50,7 @@ public class NoteworthyNeoForge {
         });
 
         if (FMLEnvironment.getDist() == Dist.CLIENT) {
-            NoteworthyNeoForgeClient.init();
+            NoteworthyNeoForgeClient.init(modEventBus);
         }
 
         modEventBus.addListener((FMLCommonSetupEvent event) -> Noteworthy.commonSetup());
