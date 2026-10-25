@@ -2,7 +2,7 @@
  * File: Songs.java
  * Author: Maxime66410
  * Created: 2026-10-23
- * Last Modified: 2026-10-24
+ * Last Modified: 2026-10-25
  */
 package org.furranystudio.noteworthy.song;
 
@@ -19,6 +19,7 @@ import org.furranystudio.noteworthy.Noteworthy;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +67,7 @@ public final class Songs {
                 Noteworthy.LOGGER.error("[Noteworthy] Couldn't read song {}", file, e);
             }
         });
+        result.sort(Comparator.comparing(Song::displayTitle, String.CASE_INSENSITIVE_ORDER));
         Noteworthy.LOGGER.info("[Noteworthy] Loaded {} songs.", result.size());
         return List.copyOf(result);
     }

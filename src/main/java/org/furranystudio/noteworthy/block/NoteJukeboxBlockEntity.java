@@ -2,13 +2,14 @@
  * File: NoteJukeboxBlockEntity.java
  * Author: Maxime66410
  * Created: 2026-10-24
- * Last Modified: 2026-10-24
+ * Last Modified: 2026-10-25
  */
 package org.furranystudio.noteworthy.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.block.NoteBlock;
@@ -19,6 +20,8 @@ import net.minecraft.world.level.storage.ValueOutput;
 import org.furranystudio.noteworthy.network.ModPackets;
 import org.furranystudio.noteworthy.song.Song;
 import org.furranystudio.noteworthy.song.Songs;
+
+import java.util.List;
 
 public class NoteJukeboxBlockEntity extends BlockEntity {
 
@@ -45,6 +48,22 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
         this.song = song;
         tick = 0;
         changed();
+    }
+
+    public Song playNext(MinecraftServer server) {
+        List<Song> songs = Songs.get(server);
+        if (songs.isEmpty()) {
+            return null;
+        }
+        int current = -1;
+        for (int i = 0; i < songs.size(); i++) {
+            if (songs.get(i).id().equals(song)) {
+                current = i;
+            }
+        }
+        Song next = songs.get((current + 1) % songs.size());
+        play(next.id());
+        return next;
     }
 
     public void stop() {

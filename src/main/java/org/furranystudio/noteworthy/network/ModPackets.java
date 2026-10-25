@@ -2,7 +2,7 @@
  * File: ModPackets.java
  * Author: Maxime66410
  * Created: 2026-10-24
- * Last Modified: 2026-10-24
+ * Last Modified: 2026-10-25
  */
 package org.furranystudio.noteworthy.network;
 
@@ -19,7 +19,6 @@ import org.furranystudio.noteworthy.network.packet.SongEntry;
 import org.furranystudio.noteworthy.network.packet.StopJukeboxPayload;
 import org.furranystudio.noteworthy.song.Songs;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,10 +47,7 @@ public final class ModPackets {
     }
 
     public static void openJukebox(ServerPlayer player, NoteJukeboxBlockEntity jukebox) {
-        List<SongEntry> songs = Songs.get(player.level().getServer()).stream()
-            .map(SongEntry::of)
-            .sorted(Comparator.comparing(SongEntry::title, String.CASE_INSENSITIVE_ORDER))
-            .toList();
+        List<SongEntry> songs = Songs.get(player.level().getServer()).stream().map(SongEntry::of).toList();
         ModNetworking.sendToPlayer(player, new OpenJukeboxPayload(jukebox.getBlockPos(), songs, state(jukebox)));
     }
 
