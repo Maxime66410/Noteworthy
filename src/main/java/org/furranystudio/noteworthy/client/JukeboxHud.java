@@ -13,6 +13,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.furranystudio.noteworthy.block.NoteJukeboxBlockEntity;
+import org.furranystudio.noteworthy.song.Songs;
 
 public final class JukeboxHud {
 
@@ -38,7 +39,7 @@ public final class JukeboxHud {
         }
         Font font = minecraft.font;
         String line = jukebox.author().isEmpty() ? jukebox.title() : jukebox.title() + " - " + jukebox.author();
-        String time = JukeboxScreen.formatTime(Math.min(jukebox.tick(), jukebox.length())) + " / " + JukeboxScreen.formatTime(jukebox.length());
+        String time = Songs.formatTime(Math.min(jukebox.tick(), jukebox.length())) + " / " + Songs.formatTime(jukebox.length());
         int x = minecraft.getWindow().getGuiScaledWidth() / 2;
         int y = minecraft.getWindow().getGuiScaledHeight() / 2 + CROSSHAIR_OFFSET;
         graphics.centeredText(font, PLAYING_MARK + line, x, y, TITLE_COLOR);

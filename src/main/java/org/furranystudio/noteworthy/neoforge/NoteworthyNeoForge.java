@@ -19,10 +19,12 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import org.furranystudio.noteworthy.Noteworthy;
+import org.furranystudio.noteworthy.command.NoteworthyCommand;
 import org.furranystudio.noteworthy.item.ModItems;
 import org.furranystudio.noteworthy.registry.ModRegistry;
 import org.furranystudio.noteworthy.song.Songs;
@@ -48,6 +50,8 @@ public class NoteworthyNeoForge {
                 Songs.get(event.getPlayerList().getServer());
             }
         });
+
+        NeoForge.EVENT_BUS.addListener((RegisterCommandsEvent event) -> NoteworthyCommand.register(event.getDispatcher()));
 
         if (FMLEnvironment.getDist() == Dist.CLIENT) {
             NoteworthyNeoForgeClient.init(modEventBus);

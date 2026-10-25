@@ -4,5 +4,12 @@
   "noteworthy.jukebox.stop": "Stop",
   "noteworthy.jukebox.idle": "Nothing playing",
   "noteworthy.jukebox.empty": "No songs loaded",
-  "noteworthy.jukebox.no_results": "No matching songs"
+  "noteworthy.jukebox.no_results": "No matching songs",
+  "noteworthy.command.list": "Songs loaded: %s",
+  "noteworthy.command.list.entry": "\n- %s: %s (%s)",
+  "noteworthy.command.play": "Now playing %s on the jukebox at %s, %s, %s",
+  "noteworthy.command.stop": "Stopped the jukebox at %s, %s, %s",
+  "noteworthy.command.no_target": "No Noteworthy Jukebox targeted",
+  "noteworthy.command.not_jukebox": "There is no Noteworthy Jukebox at %s, %s, %s",
+  "noteworthy.command.unknown_song": "Unknown song: %s"
 }

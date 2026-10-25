@@ -4,5 +4,12 @@
   "noteworthy.jukebox.stop": "Arrêter",
   "noteworthy.jukebox.idle": "Aucune lecture en cours",
   "noteworthy.jukebox.empty": "Aucune chanson chargée",
-  "noteworthy.jukebox.no_results": "Aucune chanson trouvée"
+  "noteworthy.jukebox.no_results": "Aucune chanson trouvée",
+  "noteworthy.command.list": "Chansons chargées : %s",
+  "noteworthy.command.list.entry": "\n- %s : %s (%s)",
+  "noteworthy.command.play": "Lecture de %s sur le juke-box en %s, %s, %s",
+  "noteworthy.command.stop": "Juke-box arrêté en %s, %s, %s",
+  "noteworthy.command.no_target": "Aucun juke-box Noteworthy visé",
+  "noteworthy.command.not_jukebox": "Pas de juke-box Noteworthy en %s, %s, %s",
+  "noteworthy.command.unknown_song": "Chanson inconnue : %s"
 }

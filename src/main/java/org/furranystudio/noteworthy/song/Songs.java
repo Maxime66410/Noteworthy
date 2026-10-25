@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public final class Songs {
@@ -33,6 +34,7 @@ public final class Songs {
     private static final int LOWEST = NAMES.indexOf("F#") + 3 * 12;
     private static final int RANGE = 24;
     private static final String REST = "-";
+    private static final int TICKS_PER_SECOND = 20;
 
     // Reloaded when the resource manager changes, so /reload picks up edited songs
     private static ResourceManager loadedFrom;
@@ -48,6 +50,11 @@ public final class Songs {
             songs = load(manager);
         }
         return songs;
+    }
+
+    public static String formatTime(int ticks) {
+        int seconds = ticks / TICKS_PER_SECOND;
+        return String.format(Locale.ROOT, "%d:%02d", seconds / 60, seconds % 60);
     }
 
     public static Song find(MinecraftServer server, Identifier id) {

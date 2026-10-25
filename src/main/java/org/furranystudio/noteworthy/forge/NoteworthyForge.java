@@ -2,7 +2,7 @@
  * File: NoteworthyForge.java
  * Author: Maxime66410
  * Created: 2026-10-23
- * Last Modified: 2026-10-24
+ * Last Modified: 2026-10-25
  */
 package org.furranystudio.noteworthy.forge;
 
@@ -12,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.OnDatapackSyncEvent;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.common.Mod;
@@ -20,6 +21,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.RegisterEvent;
 import org.furranystudio.noteworthy.Noteworthy;
+import org.furranystudio.noteworthy.command.NoteworthyCommand;
 import org.furranystudio.noteworthy.item.ModItems;
 import org.furranystudio.noteworthy.registry.ModRegistry;
 import org.furranystudio.noteworthy.song.Songs;
@@ -44,6 +46,8 @@ public class NoteworthyForge {
                 Songs.get(event.getPlayerList().getServer());
             }
         });
+
+        RegisterCommandsEvent.BUS.addListener(event -> NoteworthyCommand.register(event.getDispatcher()));
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             NoteworthyForgeClient.init();

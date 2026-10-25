@@ -27,6 +27,7 @@ import org.furranystudio.noteworthy.network.packet.JukeboxStatePayload;
 import org.furranystudio.noteworthy.network.packet.PlayJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.SongEntry;
 import org.furranystudio.noteworthy.network.packet.StopJukeboxPayload;
+import org.furranystudio.noteworthy.song.Songs;
 
 import java.util.List;
 import java.util.Locale;
@@ -42,7 +43,6 @@ public class JukeboxScreen extends Screen {
     private static final int PROGRESS_WIDTH = 200;
     private static final int PROGRESS_HEIGHT = 18;
     private static final int BAR_HEIGHT = 4;
-    private static final int TICKS_PER_SECOND = 20;
     private static final int TITLE_COLOR = 0xFFFFFFFF;
     private static final int PLAYING_COLOR = 0xFFFFFF55;
     private static final int MUTED_COLOR = 0xFFA0A0A0;
@@ -153,7 +153,7 @@ public class JukeboxScreen extends Screen {
             graphics.centeredText(font, Component.translatable("noteworthy.jukebox.idle"), center, y + (PROGRESS_HEIGHT - font.lineHeight) / 2, MUTED_COLOR);
             return;
         }
-        String time = "  " + formatTime(Math.min(tick, current.length())) + " / " + formatTime(current.length());
+        String time = "  " + Songs.formatTime(Math.min(tick, current.length())) + " / " + Songs.formatTime(current.length());
         String title = font.plainSubstrByWidth(current.title(), PROGRESS_WIDTH - font.width(time));
         graphics.centeredText(font, title + time, center, y, TITLE_COLOR);
         int barY = y + PROGRESS_HEIGHT - BAR_HEIGHT;
@@ -173,11 +173,6 @@ public class JukeboxScreen extends Screen {
         if (stop != null) {
             stop.active = playing != null;
         }
-    }
-
-    static String formatTime(int ticks) {
-        int seconds = ticks / TICKS_PER_SECOND;
-        return String.format(Locale.ROOT, "%d:%02d", seconds / 60, seconds % 60);
     }
 
     private class SongList extends ObjectSelectionList<SongList.Entry> {
@@ -223,7 +218,7 @@ public class JukeboxScreen extends Screen {
             public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a) {
                 int buttonX = playButtonX();
                 int buttonY = playButtonY();
-                String duration = formatTime(song.length());
+                String duration = Songs.formatTime(song.length());
                 int durationX = buttonX - 6 - font.width(duration);
                 int textX = getContentX() + 4;
                 int textWidth = durationX - textX - 6;

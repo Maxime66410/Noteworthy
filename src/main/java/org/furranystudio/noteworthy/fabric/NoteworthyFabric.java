@@ -2,11 +2,12 @@
  * File: NoteworthyFabric.java
  * Author: Maxime66410
  * Created: 2026-10-23
- * Last Modified: 2026-10-24
+ * Last Modified: 2026-10-25
  */
 package org.furranystudio.noteworthy.fabric;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.core.Registry;
@@ -16,6 +17,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Items;
 import org.furranystudio.noteworthy.Noteworthy;
+import org.furranystudio.noteworthy.command.NoteworthyCommand;
 import org.furranystudio.noteworthy.item.ModItems;
 import org.furranystudio.noteworthy.registry.ModRegistry;
 import org.furranystudio.noteworthy.song.Songs;
@@ -34,6 +36,8 @@ public final class NoteworthyFabric implements ModInitializer {
 
         ServerLifecycleEvents.SERVER_STARTED.register(Songs::get);
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> Songs.get(server));
+
+        CommandRegistrationCallback.EVENT.register((dispatcher, buildContext, selection) -> NoteworthyCommand.register(dispatcher));
 
         Noteworthy.commonSetup();
     }
