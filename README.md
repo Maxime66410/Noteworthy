@@ -5,7 +5,7 @@ Noteworthy is a Minecraft mod for Forge, NeoForge and Fabric that adds a jukebox
 ## What's in the mod
 
 **The Noteworthy Jukebox**
-Craft it like a vanilla jukebox, with a netherite ingot in the middle instead of the diamond. Right click it to open its menu, or sneak + right click with an empty hand to play the next song without opening anything. It keeps playing where it was after you leave and come back, and sends out note particles while it plays.
+Craft it with a vanilla jukebox in the middle, surrounded by 8 note blocks. Right click it to open its menu, or sneak + right click with an empty hand to play the next song without opening anything. It keeps playing where it was after you leave and come back, and sends out note particles while it plays.
 
 **The menu**
 - A list of every loaded song with its author and length, a search bar, and a sort button (title, author or duration).

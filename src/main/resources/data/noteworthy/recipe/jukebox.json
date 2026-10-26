@@ -1,8 +1,8 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "#": "#minecraft:planks",
-    "X": "minecraft:netherite_ingot"
+    "#": "minecraft:note_block",
+    "X": "minecraft:jukebox"
   },
   "pattern": [
     "###",

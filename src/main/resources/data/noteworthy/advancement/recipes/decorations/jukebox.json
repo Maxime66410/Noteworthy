@@ -1,11 +1,14 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_netherite_ingot": {
+    "has_jukebox_or_note_block": {
       "conditions": {
         "items": [
           {
-            "items": "minecraft:netherite_ingot"
+            "items": [
+              "minecraft:jukebox",
+              "minecraft:note_block"
+            ]
           }
         ]
       },
@@ -21,7 +24,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_netherite_ingot"
+      "has_jukebox_or_note_block"
     ]
   ],
   "rewards": {
