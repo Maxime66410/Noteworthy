@@ -39,6 +39,7 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
     private static final float VOLUME = 3.0F;
     private static final double PARTICLE_HEIGHT = 1.2;
     private static final double NOTE_COLORS = 24.0;
+    private static final int RESTART_TICKS = 60;
 
     private Identifier song;
     private int tick;
@@ -110,6 +111,19 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
         return next;
     }
 
+    public Song playPrevious(MinecraftServer server) {
+        List<Song> songs = sort.sort(Songs.get(server));
+        if (songs.isEmpty()) {
+            return null;
+        }
+        Song previous = song != null && tick >= RESTART_TICKS ? byId(songs, song) : null;
+        if (previous == null) {
+            previous = mode == PlayMode.SHUFFLE ? previousInDeck(songs) : previousInList(songs);
+        }
+        start(previous.id());
+        return previous;
+    }
+
     private void start(Identifier song) {
         this.song = song;
         tick = 0;
@@ -127,6 +141,29 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
         return songs.get((current + 1) % songs.size());
     }
 
+    private Song previousInList(List<Song> songs) {
+        int current = songs.size();
+        for (int i = 0; i < songs.size(); i++) {
+            if (songs.get(i).id().equals(song)) {
+                current = i;
+            }
+        }
+        return songs.get((current - 1 + songs.size()) % songs.size());
+    }
+
+    private Song previousInDeck(List<Song> songs) {
+        if (!deck.isEmpty()) {
+            syncDeck(songs);
+        }
+        if (deckPos < 0) {
+            return nextInDeck(songs);
+        }
+        if (song != null && deckPos > 0) {
+            deckPos--;
+        }
+        return byId(songs, deck.get(deckPos));
+    }
+
     private Song nextInDeck(List<Song> songs) {
         if (deck.isEmpty()) {
             newDeck(songs, null);
@@ -137,8 +174,11 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
             newDeck(songs, null);
         }
         deckPos++;
-        Identifier id = deck.get(deckPos);
-        return songs.stream().filter(candidate -> candidate.id().equals(id)).findFirst().orElseThrow();
+        return byId(songs, deck.get(deckPos));
+    }
+
+    private static Song byId(List<Song> songs, Identifier id) {
+        return songs.stream().filter(candidate -> candidate.id().equals(id)).findFirst().orElse(null);
     }
 
     private void newDeck(List<Song> songs, Identifier first) {

@@ -18,6 +18,7 @@ import org.furranystudio.noteworthy.network.packet.OpenJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.PauseJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.PlayJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.SeekJukeboxPayload;
+import org.furranystudio.noteworthy.network.packet.SkipJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.SongEntry;
 import org.furranystudio.noteworthy.network.packet.SortJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.StopJukeboxPayload;
@@ -52,6 +53,16 @@ public final class ModPackets {
             NoteJukeboxBlockEntity jukebox = reachableJukebox(player, payload.pos());
             if (jukebox != null) {
                 jukebox.setPaused(payload.paused());
+            }
+        });
+        ModNetworking.serverbound(SkipJukeboxPayload.TYPE, SkipJukeboxPayload.STREAM_CODEC, (payload, player) -> {
+            NoteJukeboxBlockEntity jukebox = reachableJukebox(player, payload.pos());
+            if (jukebox != null) {
+                if (payload.forward()) {
+                    jukebox.playNext(player.level().getServer());
+                } else {
+                    jukebox.playPrevious(player.level().getServer());
+                }
             }
         });
         ModNetworking.serverbound(ModeJukeboxPayload.TYPE, ModeJukeboxPayload.STREAM_CODEC, (payload, player) -> {

@@ -30,6 +30,7 @@ import org.furranystudio.noteworthy.network.packet.ModeJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.PauseJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.PlayJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.SeekJukeboxPayload;
+import org.furranystudio.noteworthy.network.packet.SkipJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.SongEntry;
 import org.furranystudio.noteworthy.network.packet.SortJukeboxPayload;
 import org.furranystudio.noteworthy.song.PlayMode;
@@ -49,6 +50,7 @@ public class JukeboxScreen extends Screen {
     private static final int SEARCH_WIDTH = 156;
     private static final int SORT_WIDTH = 100;
     private static final int STOP_WIDTH = 100;
+    private static final int SKIP_WIDTH = 20;
     private static final int MODE_WIDTH = 130;
     private static final int SEARCH_HEIGHT = 15;
     private static final int PROGRESS_WIDTH = 200;
@@ -70,6 +72,8 @@ public class JukeboxScreen extends Screen {
     private static final int PAUSE_BAR_WIDTH = 3;
     private static final int PAUSE_GAP = 2;
     private static final String PLAYING_MARK = "♪ ";
+    private static final String PREVIOUS_MARK = "⏮";
+    private static final String NEXT_MARK = "⏭";
 
     private final HeaderAndFooterLayout layout = new HeaderAndFooterLayout(this, HEADER_HEIGHT, FOOTER_HEIGHT);
     private final BlockPos pos;
@@ -130,8 +134,12 @@ public class JukeboxScreen extends Screen {
         footer.defaultCellSetting().alignHorizontallyCenter();
         progress = footer.addChild(new ProgressBar());
         LinearLayout controls = footer.addChild(LinearLayout.horizontal().spacing(4));
+        controls.addChild(Button.builder(Component.literal(PREVIOUS_MARK),
+            button -> ModNetworking.sendToServer(new SkipJukeboxPayload(pos, false))).width(SKIP_WIDTH).build()).active = !songs.isEmpty();
         stop = controls.addChild(Button.builder(Component.translatable("noteworthy.jukebox.stop"),
             button -> ModNetworking.sendToServer(new StopJukeboxPayload(pos))).width(STOP_WIDTH).build());
+        controls.addChild(Button.builder(Component.literal(NEXT_MARK),
+            button -> ModNetworking.sendToServer(new SkipJukeboxPayload(pos, true))).width(SKIP_WIDTH).build()).active = !songs.isEmpty();
         modeButton = controls.addChild(Button.builder(modeLabel(),
             button -> ModNetworking.sendToServer(new ModeJukeboxPayload(pos, mode.next()))).width(MODE_WIDTH).build());
         footer.addChild(Button.builder(CommonComponents.GUI_DONE, button -> onClose()).build());

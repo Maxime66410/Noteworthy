@@ -22,6 +22,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -48,6 +49,8 @@ public final class NoteworthyCommand {
         new SimpleCommandExceptionType(Component.translatable("noteworthy.command.already_paused"));
     private static final SimpleCommandExceptionType NOT_PAUSED =
         new SimpleCommandExceptionType(Component.translatable("noteworthy.command.not_paused"));
+    private static final SimpleCommandExceptionType NO_SONGS =
+        new SimpleCommandExceptionType(Component.translatable("noteworthy.jukebox.empty"));
     private static final DynamicCommandExceptionType UNKNOWN_SONG = new DynamicCommandExceptionType(id ->
         Component.translatable("noteworthy.command.unknown_song", String.valueOf(id)));
 
@@ -78,6 +81,14 @@ public final class NoteworthyCommand {
                     .executes(context -> runPause(context, targetedJukebox(context), false))
                     .then(Commands.argument("pos", BlockPosArgument.blockPos())
                         .executes(context -> runPause(context, jukeboxAt(context), false))))
+                .then(Commands.literal("next")
+                    .executes(context -> runSkip(context, targetedJukebox(context), true))
+                    .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                        .executes(context -> runSkip(context, jukeboxAt(context), true))))
+                .then(Commands.literal("previous")
+                    .executes(context -> runSkip(context, targetedJukebox(context), false))
+                    .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                        .executes(context -> runSkip(context, jukeboxAt(context), false))))
                 .then(sortCommand())
                 .then(modeCommand())
         );
@@ -139,6 +150,18 @@ public final class NoteworthyCommand {
             throw UNKNOWN_SONG.create(id);
         }
         jukebox.play(song.id());
+        BlockPos pos = jukebox.getBlockPos();
+        context.getSource().sendSuccess(() -> Component.translatable("noteworthy.command.play", song.displayTitle(),
+            pos.getX(), pos.getY(), pos.getZ()), true);
+        return 1;
+    }
+
+    private static int runSkip(CommandContext<CommandSourceStack> context, NoteJukeboxBlockEntity jukebox, boolean forward) throws CommandSyntaxException {
+        MinecraftServer server = context.getSource().getServer();
+        Song song = forward ? jukebox.playNext(server) : jukebox.playPrevious(server);
+        if (song == null) {
+            throw NO_SONGS.create();
+        }
         BlockPos pos = jukebox.getBlockPos();
         context.getSource().sendSuccess(() -> Component.translatable("noteworthy.command.play", song.displayTitle(),
             pos.getX(), pos.getY(), pos.getZ()), true);
