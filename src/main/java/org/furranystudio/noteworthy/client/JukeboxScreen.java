@@ -2,19 +2,20 @@
  * File: JukeboxScreen.java
  * Author: Maxime66410
  * Created: 2026-10-24
- * Last Modified: 2026-10-25
+ * Last Modified: 2026-10-26
  */
 package org.furranystudio.noteworthy.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.layouts.LinearLayout;
-import net.minecraft.client.gui.layouts.SpacerElement;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -22,9 +23,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 import org.furranystudio.noteworthy.network.ModNetworking;
 import org.furranystudio.noteworthy.network.packet.JukeboxStatePayload;
 import org.furranystudio.noteworthy.network.packet.PlayJukeboxPayload;
+import org.furranystudio.noteworthy.network.packet.SeekJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.SongEntry;
 import org.furranystudio.noteworthy.network.packet.StopJukeboxPayload;
 import org.furranystudio.noteworthy.song.Songs;
@@ -42,7 +45,9 @@ public class JukeboxScreen extends Screen {
     private static final int SEARCH_HEIGHT = 15;
     private static final int PROGRESS_WIDTH = 200;
     private static final int PROGRESS_HEIGHT = 18;
-    private static final int BAR_HEIGHT = 4;
+    private static final int BAR_HEIGHT = 6;
+    private static final int BAR_GRAB = 2;
+    private static final int LABEL_BACK = 0xC0000000;
     private static final int TITLE_COLOR = 0xFFFFFFFF;
     private static final int PLAYING_COLOR = 0xFFFFFF55;
     private static final int MUTED_COLOR = 0xFFA0A0A0;
@@ -63,7 +68,7 @@ public class JukeboxScreen extends Screen {
     private int tick;
     private SongList list;
     private Button stop;
-    private SpacerElement progress;
+    private ProgressBar progress;
 
     public JukeboxScreen(BlockPos pos, List<SongEntry> songs, JukeboxStatePayload state) {
         super(Component.translatable("block.noteworthy.jukebox"));
@@ -96,7 +101,7 @@ public class JukeboxScreen extends Screen {
 
         LinearLayout footer = layout.addToFooter(LinearLayout.vertical().spacing(6));
         footer.defaultCellSetting().alignHorizontallyCenter();
-        progress = footer.addChild(new SpacerElement(PROGRESS_WIDTH, PROGRESS_HEIGHT));
+        progress = footer.addChild(new ProgressBar());
         LinearLayout buttons = footer.addChild(LinearLayout.horizontal().spacing(8));
         stop = buttons.addChild(Button.builder(Component.translatable("noteworthy.jukebox.stop"),
             button -> ModNetworking.sendToServer(new StopJukeboxPayload(pos))).build());
@@ -141,25 +146,6 @@ public class JukeboxScreen extends Screen {
             Component empty = Component.translatable(songs.isEmpty() ? "noteworthy.jukebox.empty" : "noteworthy.jukebox.no_results");
             graphics.centeredText(font, empty, width / 2, layout.getHeaderHeight() + layout.getContentHeight() / 2 - font.lineHeight / 2, MUTED_COLOR);
         }
-        extractProgress(graphics);
-    }
-
-    private void extractProgress(GuiGraphicsExtractor graphics) {
-        int x = progress.getX();
-        int y = progress.getY();
-        int center = x + PROGRESS_WIDTH / 2;
-        SongEntry current = current();
-        if (current == null) {
-            graphics.centeredText(font, Component.translatable("noteworthy.jukebox.idle"), center, y + (PROGRESS_HEIGHT - font.lineHeight) / 2, MUTED_COLOR);
-            return;
-        }
-        String time = "  " + Songs.formatTime(Math.min(tick, current.length())) + " / " + Songs.formatTime(current.length());
-        String title = font.plainSubstrByWidth(current.title(), PROGRESS_WIDTH - font.width(time));
-        graphics.centeredText(font, title + time, center, y, TITLE_COLOR);
-        int barY = y + PROGRESS_HEIGHT - BAR_HEIGHT;
-        int filled = PROGRESS_WIDTH * Math.min(tick, current.length()) / Math.max(current.length(), 1);
-        graphics.fill(x, barY, x + PROGRESS_WIDTH, barY + BAR_HEIGHT, BAR_BACK);
-        graphics.fill(x, barY, x + filled, barY + BAR_HEIGHT, BAR_FILL);
     }
 
     private SongEntry current() {
@@ -172,6 +158,92 @@ public class JukeboxScreen extends Screen {
     private void refresh() {
         if (stop != null) {
             stop.active = playing != null;
+            progress.active = playing != null;
+        }
+    }
+
+    private class ProgressBar extends AbstractWidget {
+
+        private Identifier dragSong;
+        private int dragTick = -1;
+
+        ProgressBar() {
+            super(0, 0, PROGRESS_WIDTH, PROGRESS_HEIGHT, Component.empty());
+        }
+
+        @Override
+        protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+            SongEntry current = current();
+            if (current == null || !current.id().equals(dragSong)) {
+                dragTick = -1;
+            }
+            if (current == null) {
+                graphics.centeredText(font, Component.translatable("noteworthy.jukebox.idle"), getX() + PROGRESS_WIDTH / 2,
+                    getY() + (PROGRESS_HEIGHT - font.lineHeight) / 2, MUTED_COLOR);
+                return;
+            }
+            int shown = dragTick >= 0 ? dragTick : Math.min(tick, current.length());
+            String time = "  " + Songs.formatTime(shown) + " / " + Songs.formatTime(current.length());
+            String title = font.plainSubstrByWidth(current.title(), PROGRESS_WIDTH - font.width(time));
+            graphics.centeredText(font, title + time, getX() + PROGRESS_WIDTH / 2, getY(), TITLE_COLOR);
+            int barY = barY();
+            int filled = PROGRESS_WIDTH * shown / Math.max(current.length(), 1);
+            graphics.fill(getX(), barY, getX() + PROGRESS_WIDTH, barY + BAR_HEIGHT, BAR_BACK);
+            graphics.fill(getX(), barY, getX() + filled, barY + BAR_HEIGHT, BAR_FILL);
+            if (dragTick >= 0 || isMouseOver(mouseX, mouseY)) {
+                String label = Songs.formatTime(dragTick >= 0 ? dragTick : tickAt(mouseX, current));
+                int labelWidth = font.width(label);
+                int labelX = Mth.clamp(mouseX - labelWidth / 2, getX() + 2, getX() + PROGRESS_WIDTH - labelWidth - 2);
+                int labelY = barY - font.lineHeight - 3;
+                graphics.fill(labelX - 2, labelY - 1, labelX + labelWidth + 2, labelY + font.lineHeight + 1, LABEL_BACK);
+                graphics.text(font, label, labelX, labelY, TITLE_COLOR);
+            }
+        }
+
+        @Override
+        public boolean isMouseOver(double mouseX, double mouseY) {
+            int barY = barY();
+            return isActive() && mouseX >= getX() && mouseX < getX() + PROGRESS_WIDTH
+                && mouseY >= barY - BAR_GRAB && mouseY < barY + BAR_HEIGHT + BAR_GRAB;
+        }
+
+        @Override
+        public void onClick(MouseButtonEvent event, boolean doubleClick) {
+            SongEntry current = current();
+            if (current != null) {
+                dragSong = current.id();
+                dragTick = tickAt(event.x(), current);
+            }
+        }
+
+        @Override
+        protected void onDrag(MouseButtonEvent event, double dx, double dy) {
+            SongEntry current = current();
+            if (dragTick >= 0 && current != null) {
+                dragTick = tickAt(event.x(), current);
+            }
+        }
+
+        @Override
+        public void onRelease(MouseButtonEvent event) {
+            if (dragTick >= 0) {
+                ModNetworking.sendToServer(new SeekJukeboxPayload(pos, dragSong, dragTick));
+                tick = dragTick;
+                dragTick = -1;
+            }
+        }
+
+        private int barY() {
+            return getY() + PROGRESS_HEIGHT - BAR_HEIGHT;
+        }
+
+        private int tickAt(double mouseX, SongEntry current) {
+            return Mth.clamp((int) ((mouseX - getX()) * current.length() / PROGRESS_WIDTH), 0, current.length() - 1);
+        }
+
+        @Override
+        protected void updateWidgetNarration(NarrationElementOutput output) {
+            defaultButtonNarrationText(output);
         }
     }
 

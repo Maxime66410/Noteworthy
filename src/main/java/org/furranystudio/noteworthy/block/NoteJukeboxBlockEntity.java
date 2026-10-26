@@ -2,7 +2,7 @@
  * File: NoteJukeboxBlockEntity.java
  * Author: Maxime66410
  * Created: 2026-10-24
- * Last Modified: 2026-10-25
+ * Last Modified: 2026-10-26
  */
 package org.furranystudio.noteworthy.block;
 
@@ -15,6 +15,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.NoteBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -83,6 +84,15 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
         Song next = songs.get((current + 1) % songs.size());
         play(next.id());
         return next;
+    }
+
+    public void seek(int tick) {
+        Song playing = song != null && level instanceof ServerLevel serverLevel ? Songs.find(serverLevel.getServer(), song) : null;
+        if (playing == null) {
+            return;
+        }
+        this.tick = Mth.clamp(tick, 0, playing.length() - 1);
+        changed();
     }
 
     public void stop() {

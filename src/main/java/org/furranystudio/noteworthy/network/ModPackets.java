@@ -2,7 +2,7 @@
  * File: ModPackets.java
  * Author: Maxime66410
  * Created: 2026-10-24
- * Last Modified: 2026-10-25
+ * Last Modified: 2026-10-26
  */
 package org.furranystudio.noteworthy.network;
 
@@ -15,6 +15,7 @@ import org.furranystudio.noteworthy.block.NoteJukeboxBlockEntity;
 import org.furranystudio.noteworthy.network.packet.JukeboxStatePayload;
 import org.furranystudio.noteworthy.network.packet.OpenJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.PlayJukeboxPayload;
+import org.furranystudio.noteworthy.network.packet.SeekJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.SongEntry;
 import org.furranystudio.noteworthy.network.packet.StopJukeboxPayload;
 import org.furranystudio.noteworthy.song.Songs;
@@ -42,6 +43,12 @@ public final class ModPackets {
             NoteJukeboxBlockEntity jukebox = reachableJukebox(player, payload.pos());
             if (jukebox != null) {
                 jukebox.stop();
+            }
+        });
+        ModNetworking.serverbound(SeekJukeboxPayload.TYPE, SeekJukeboxPayload.STREAM_CODEC, (payload, player) -> {
+            NoteJukeboxBlockEntity jukebox = reachableJukebox(player, payload.pos());
+            if (jukebox != null && payload.song().equals(jukebox.song())) {
+                jukebox.seek(payload.tick());
             }
         });
     }
