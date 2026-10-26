@@ -12,16 +12,19 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.furranystudio.noteworthy.block.NoteJukeboxBlockEntity;
+import org.furranystudio.noteworthy.network.packet.JukeboxNotesPayload;
 import org.furranystudio.noteworthy.network.packet.JukeboxStatePayload;
 import org.furranystudio.noteworthy.network.packet.ModeJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.OpenJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.PauseJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.PlayJukeboxPayload;
+import org.furranystudio.noteworthy.network.packet.RangeJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.SeekJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.SkipJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.SongEntry;
 import org.furranystudio.noteworthy.network.packet.SortJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.StopJukeboxPayload;
+import org.furranystudio.noteworthy.network.packet.VolumeJukeboxPayload;
 import org.furranystudio.noteworthy.song.Songs;
 
 import java.util.List;
@@ -37,6 +40,7 @@ public final class ModPackets {
     public static void init() {
         ModNetworking.clientbound(OpenJukeboxPayload.TYPE, OpenJukeboxPayload.STREAM_CODEC);
         ModNetworking.clientbound(JukeboxStatePayload.TYPE, JukeboxStatePayload.STREAM_CODEC);
+        ModNetworking.clientbound(JukeboxNotesPayload.TYPE, JukeboxNotesPayload.STREAM_CODEC);
         ModNetworking.serverbound(PlayJukeboxPayload.TYPE, PlayJukeboxPayload.STREAM_CODEC, (payload, player) -> {
             NoteJukeboxBlockEntity jukebox = reachableJukebox(player, payload.pos());
             if (jukebox != null && Songs.find(player.level().getServer(), payload.song()) != null) {
@@ -77,6 +81,18 @@ public final class ModPackets {
                 jukebox.setSort(payload.sort());
             }
         });
+        ModNetworking.serverbound(RangeJukeboxPayload.TYPE, RangeJukeboxPayload.STREAM_CODEC, (payload, player) -> {
+            NoteJukeboxBlockEntity jukebox = reachableJukebox(player, payload.pos());
+            if (jukebox != null) {
+                jukebox.setRange(payload.range());
+            }
+        });
+        ModNetworking.serverbound(VolumeJukeboxPayload.TYPE, VolumeJukeboxPayload.STREAM_CODEC, (payload, player) -> {
+            NoteJukeboxBlockEntity jukebox = reachableJukebox(player, payload.pos());
+            if (jukebox != null) {
+                jukebox.setVolume(payload.volume());
+            }
+        });
         ModNetworking.serverbound(SeekJukeboxPayload.TYPE, SeekJukeboxPayload.STREAM_CODEC, (payload, player) -> {
             NoteJukeboxBlockEntity jukebox = reachableJukebox(player, payload.pos());
             if (jukebox != null && payload.song().equals(jukebox.song())) {
@@ -100,8 +116,18 @@ public final class ModPackets {
         }
     }
 
+    public static void sendNotes(ServerLevel level, JukeboxNotesPayload notes) {
+        Vec3 center = Vec3.atCenterOf(notes.pos());
+        for (ServerPlayer player : level.players()) {
+            if (player.position().closerThan(center, notes.range())) {
+                ModNetworking.sendToPlayer(player, notes);
+            }
+        }
+    }
+
     private static JukeboxStatePayload state(NoteJukeboxBlockEntity jukebox) {
-        return new JukeboxStatePayload(jukebox.getBlockPos(), Optional.ofNullable(jukebox.song()), jukebox.tick(), jukebox.paused(), jukebox.sort(), jukebox.mode());
+        return new JukeboxStatePayload(jukebox.getBlockPos(), Optional.ofNullable(jukebox.song()), jukebox.tick(), jukebox.paused(), jukebox.sort(), jukebox.mode(),
+            jukebox.range(), jukebox.volume());
     }
 
     private static NoteJukeboxBlockEntity reachableJukebox(ServerPlayer player, BlockPos pos) {

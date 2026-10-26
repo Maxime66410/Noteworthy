@@ -7,6 +7,7 @@
 package org.furranystudio.noteworthy.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -89,6 +90,16 @@ public final class NoteworthyCommand {
                     .executes(context -> runSkip(context, targetedJukebox(context), false))
                     .then(Commands.argument("pos", BlockPosArgument.blockPos())
                         .executes(context -> runSkip(context, jukeboxAt(context), false))))
+                .then(Commands.literal("range")
+                    .then(Commands.argument("blocks", IntegerArgumentType.integer(NoteJukeboxBlockEntity.MIN_RANGE, NoteJukeboxBlockEntity.MAX_RANGE))
+                        .executes(context -> runRange(context, targetedJukebox(context)))
+                        .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                            .executes(context -> runRange(context, jukeboxAt(context))))))
+                .then(Commands.literal("volume")
+                    .then(Commands.argument("percent", IntegerArgumentType.integer(0, NoteJukeboxBlockEntity.MAX_VOLUME))
+                        .executes(context -> runVolume(context, targetedJukebox(context)))
+                        .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                            .executes(context -> runVolume(context, jukeboxAt(context))))))
                 .then(sortCommand())
                 .then(modeCommand())
         );
@@ -121,6 +132,22 @@ public final class NoteworthyCommand {
         BlockPos pos = jukebox.getBlockPos();
         context.getSource().sendSuccess(() -> Component.translatable("noteworthy.command.mode", pos.getX(), pos.getY(), pos.getZ(),
             mode.displayName()), true);
+        return 1;
+    }
+
+    private static int runRange(CommandContext<CommandSourceStack> context, NoteJukeboxBlockEntity jukebox) {
+        int range = IntegerArgumentType.getInteger(context, "blocks");
+        jukebox.setRange(range);
+        BlockPos pos = jukebox.getBlockPos();
+        context.getSource().sendSuccess(() -> Component.translatable("noteworthy.command.range", pos.getX(), pos.getY(), pos.getZ(), range), true);
+        return 1;
+    }
+
+    private static int runVolume(CommandContext<CommandSourceStack> context, NoteJukeboxBlockEntity jukebox) {
+        int volume = IntegerArgumentType.getInteger(context, "percent");
+        jukebox.setVolume(volume);
+        BlockPos pos = jukebox.getBlockPos();
+        context.getSource().sendSuccess(() -> Component.translatable("noteworthy.command.volume", pos.getX(), pos.getY(), pos.getZ(), volume), true);
         return 1;
     }
 

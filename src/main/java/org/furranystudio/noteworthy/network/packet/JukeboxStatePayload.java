@@ -18,7 +18,7 @@ import org.furranystudio.noteworthy.song.SongSort;
 
 import java.util.Optional;
 
-public record JukeboxStatePayload(BlockPos pos, Optional<Identifier> song, int tick, boolean paused, SongSort sort, PlayMode mode) implements CustomPacketPayload {
+public record JukeboxStatePayload(BlockPos pos, Optional<Identifier> song, int tick, boolean paused, SongSort sort, PlayMode mode, int range, int volume) implements CustomPacketPayload {
 
     public static final Type<JukeboxStatePayload> TYPE = new Type<>(Noteworthy.id("jukebox_state"));
     public static final StreamCodec<ByteBuf, JukeboxStatePayload> STREAM_CODEC = StreamCodec.composite(
@@ -28,6 +28,8 @@ public record JukeboxStatePayload(BlockPos pos, Optional<Identifier> song, int t
         ByteBufCodecs.BOOL, JukeboxStatePayload::paused,
         SongSort.STREAM_CODEC, JukeboxStatePayload::sort,
         PlayMode.STREAM_CODEC, JukeboxStatePayload::mode,
+        ByteBufCodecs.VAR_INT, JukeboxStatePayload::range,
+        ByteBufCodecs.VAR_INT, JukeboxStatePayload::volume,
         JukeboxStatePayload::new);
 
     @Override

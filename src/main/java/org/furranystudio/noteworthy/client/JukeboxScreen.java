@@ -83,6 +83,8 @@ public class JukeboxScreen extends Screen {
     private boolean paused;
     private SongSort sort = SongSort.TITLE;
     private PlayMode mode = PlayMode.ONCE;
+    private int range;
+    private int volume;
     private String query = "";
     private SongList list;
     private Button sortButton;
@@ -101,6 +103,14 @@ public class JukeboxScreen extends Screen {
         return pos;
     }
 
+    public int range() {
+        return range;
+    }
+
+    public int volume() {
+        return volume;
+    }
+
     public void applyState(JukeboxStatePayload state) {
         playing = state.song().orElse(null);
         tick = state.tick();
@@ -108,6 +118,8 @@ public class JukeboxScreen extends Screen {
         SongSort previous = sort;
         sort = state.sort();
         mode = state.mode();
+        range = state.range();
+        volume = state.volume();
         refresh();
         if (list != null && previous != sort) {
             list.filter(query);
@@ -142,7 +154,10 @@ public class JukeboxScreen extends Screen {
             button -> ModNetworking.sendToServer(new SkipJukeboxPayload(pos, true))).width(SKIP_WIDTH).build()).active = !songs.isEmpty();
         modeButton = controls.addChild(Button.builder(modeLabel(),
             button -> ModNetworking.sendToServer(new ModeJukeboxPayload(pos, mode.next()))).width(MODE_WIDTH).build());
-        footer.addChild(Button.builder(CommonComponents.GUI_DONE, button -> onClose()).build());
+        LinearLayout buttons = footer.addChild(LinearLayout.horizontal().spacing(4));
+        buttons.addChild(Button.builder(Component.translatable("noteworthy.jukebox.settings"),
+            button -> minecraft.gui.setScreen(new JukeboxSettingsScreen(this))).build());
+        buttons.addChild(Button.builder(CommonComponents.GUI_DONE, button -> onClose()).build());
 
         layout.visitWidgets(this::addRenderableWidget);
         repositionElements();

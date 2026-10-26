@@ -14,7 +14,6 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.NoteBlock;
@@ -23,6 +22,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.furranystudio.noteworthy.network.ModPackets;
+import org.furranystudio.noteworthy.network.packet.JukeboxNotesPayload;
 import org.furranystudio.noteworthy.song.PlayMode;
 import org.furranystudio.noteworthy.song.Song;
 import org.furranystudio.noteworthy.song.SongSort;
@@ -36,7 +36,10 @@ import java.util.stream.Collectors;
 
 public class NoteJukeboxBlockEntity extends BlockEntity {
 
-    private static final float VOLUME = 3.0F;
+    public static final int MIN_RANGE = 8;
+    public static final int MAX_RANGE = 64;
+    public static final int DEFAULT_RANGE = 48;
+    public static final int MAX_VOLUME = 100;
     private static final double PARTICLE_HEIGHT = 1.2;
     private static final double NOTE_COLORS = 24.0;
     private static final int RESTART_TICKS = 60;
@@ -46,6 +49,8 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
     private boolean paused;
     private SongSort sort = SongSort.TITLE;
     private PlayMode mode = PlayMode.ONCE;
+    private int range = DEFAULT_RANGE;
+    private int volume = MAX_VOLUME;
     private final List<Identifier> deck = new ArrayList<>();
     private int deckPos = -1;
     private String title = "";
@@ -74,6 +79,14 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
 
     public PlayMode mode() {
         return mode;
+    }
+
+    public int range() {
+        return range;
+    }
+
+    public int volume() {
+        return volume;
     }
 
     public String title() {
@@ -269,6 +282,24 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
         changed();
     }
 
+    public void setRange(int range) {
+        range = Mth.clamp(range, MIN_RANGE, MAX_RANGE);
+        if (this.range == range) {
+            return;
+        }
+        this.range = range;
+        changed();
+    }
+
+    public void setVolume(int volume) {
+        volume = Mth.clamp(volume, 0, MAX_VOLUME);
+        if (this.volume == volume) {
+            return;
+        }
+        this.volume = volume;
+        changed();
+    }
+
     public void stop() {
         song = null;
         tick = 0;
@@ -306,11 +337,15 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
         if (paused) {
             return;
         }
+        List<JukeboxNotesPayload.Note> sounds = new ArrayList<>();
         for (Song.Part part : playing.parts()) {
             int[] notes = part.notes().get(tick);
             if (notes != null) {
-                playNotes(level, pos, part, notes);
+                playNotes(level, pos, part, notes, sounds);
             }
+        }
+        if (!sounds.isEmpty() && volume > 0) {
+            ModPackets.sendNotes(level, new JukeboxNotesPayload(pos, range, volume, sounds));
         }
         tick++;
         setChanged();
@@ -331,11 +366,11 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
         }
     }
 
-    private static void playNotes(ServerLevel level, BlockPos pos, Song.Part part, int[] notes) {
+    private static void playNotes(ServerLevel level, BlockPos pos, Song.Part part, int[] notes, List<JukeboxNotesPayload.Note> sounds) {
         boolean tunable = part.instrument().isTunable();
+        Identifier sound = part.instrument().getSoundEvent().value().location();
         for (int note : notes) {
-            level.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, part.instrument().getSoundEvent().value(),
-                SoundSource.RECORDS, VOLUME, tunable ? NoteBlock.getPitchFromNote(note) : 1.0F);
+            sounds.add(new JukeboxNotesPayload.Note(sound, tunable ? NoteBlock.getPitchFromNote(note) : 1.0F));
             if (tunable) {
                 level.sendParticles(ParticleTypes.NOTE, pos.getX() + 0.5, pos.getY() + PARTICLE_HEIGHT, pos.getZ() + 0.5,
                     0, note / NOTE_COLORS, 0.0, 0.0, 1.0);
@@ -348,6 +383,8 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
         super.saveAdditional(output);
         output.putString("Sort", sort.getName());
         output.putString("Mode", mode.getName());
+        output.putInt("Range", range);
+        output.putInt("Volume", volume);
         if (!deck.isEmpty()) {
             output.store("Deck", Identifier.CODEC.listOf(), List.copyOf(deck));
             output.putInt("DeckPos", deckPos);
@@ -367,6 +404,8 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
         paused = input.getBooleanOr("Paused", false);
         sort = SongSort.byName(input.getStringOr("Sort", SongSort.TITLE.getName()));
         mode = PlayMode.byName(input.getStringOr("Mode", PlayMode.ONCE.getName()));
+        range = Mth.clamp(input.getIntOr("Range", DEFAULT_RANGE), MIN_RANGE, MAX_RANGE);
+        volume = Mth.clamp(input.getIntOr("Volume", MAX_VOLUME), 0, MAX_VOLUME);
         deck.clear();
         input.read("Deck", Identifier.CODEC.listOf()).ifPresent(deck::addAll);
         deckPos = Mth.clamp(input.getIntOr("DeckPos", -1), -1, deck.size() - 1);
