@@ -1,0 +1,92 @@
+name: Bug report
+description: Something doesn't work as it should in Noteworthy
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Found a security issue instead? Please report it privately, see [SECURITY.md](https://github.com/Maxime66410/Noteworthy/blob/main/SECURITY.md).
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can we make the bug happen again?
+      placeholder: |
+        1. Go to...
+        2. Right click on...
+        3. See...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen instead?
+    validations:
+      required: true
+  - type: dropdown
+    id: loader
+    attributes:
+      label: Loader
+      options:
+        - Forge
+        - NeoForge
+        - Fabric
+    validations:
+      required: true
+  - type: input
+    id: minecraft
+    attributes:
+      label: Minecraft version
+      placeholder: "26.3"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Mod version
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: side
+    attributes:
+      label: Singleplayer or server
+      options:
+        - Singleplayer
+        - Server
+        - Both
+    validations:
+      required: true
+  - type: textarea
+    id: mods
+    attributes:
+      label: Other installed mods
+      description: List the other mods you have installed, or leave empty if Noteworthy is the only one.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or crash report
+      description: Required if the game crashed. Paste a [mclo.gs](https://mclo.gs) link, or the log itself.
+      render: shell
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshots or video
+      description: Drag and drop images or videos here if they help explain the bug.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the existing issues and this bug was not reported yet.
+          required: true
+        - label: This report is not AI generated.
+          required: true

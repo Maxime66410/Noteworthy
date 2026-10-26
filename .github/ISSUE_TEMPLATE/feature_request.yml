@@ -1,0 +1,48 @@
+name: Feature request
+description: Suggest an idea for Noteworthy
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing your idea! For translations, please open a pull request instead, see [CONTRIBUTING.md](https://github.com/Maxime66410/Noteworthy/blob/main/CONTRIBUTING.md#translations).
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - Jukebox
+        - Menu
+        - Songs
+        - Commands
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: Describe what you would like to see in the mod.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it would be useful
+      description: What would it add to the game?
+    validations:
+      required: true
+  - type: textarea
+    id: media
+    attributes:
+      label: Images or references
+      description: Drag and drop images here if they help explain your idea.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the existing issues and this idea was not suggested yet.
+          required: true
+        - label: This suggestion is not AI generated.
+          required: true
