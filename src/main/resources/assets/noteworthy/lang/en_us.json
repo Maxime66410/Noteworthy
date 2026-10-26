@@ -9,6 +9,11 @@
   "noteworthy.command.list.entry": "\n- %s: %s (%s)",
   "noteworthy.command.play": "Now playing %s on the jukebox at %s, %s, %s",
   "noteworthy.command.stop": "Stopped the jukebox at %s, %s, %s",
+  "noteworthy.command.pause": "Paused the jukebox at %s, %s, %s",
+  "noteworthy.command.resume": "Resumed the jukebox at %s, %s, %s",
+  "noteworthy.command.not_playing": "No song is playing on this jukebox",
+  "noteworthy.command.already_paused": "This jukebox is already paused",
+  "noteworthy.command.not_paused": "This jukebox is not paused",
   "noteworthy.command.no_target": "No Noteworthy Jukebox targeted",
   "noteworthy.command.not_jukebox": "There is no Noteworthy Jukebox at %s, %s, %s",
   "noteworthy.command.unknown_song": "Unknown song: %s"

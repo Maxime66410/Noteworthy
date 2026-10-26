@@ -9,6 +9,11 @@
   "noteworthy.command.list.entry": "\n- %s : %s (%s)",
   "noteworthy.command.play": "Lecture de %s sur le juke-box en %s, %s, %s",
   "noteworthy.command.stop": "Juke-box arrêté en %s, %s, %s",
+  "noteworthy.command.pause": "Juke-box mis en pause en %s, %s, %s",
+  "noteworthy.command.resume": "Lecture reprise sur le juke-box en %s, %s, %s",
+  "noteworthy.command.not_playing": "Aucune chanson en cours sur ce juke-box",
+  "noteworthy.command.already_paused": "Ce juke-box est déjà en pause",
+  "noteworthy.command.not_paused": "Ce juke-box n'est pas en pause",
   "noteworthy.command.no_target": "Aucun juke-box Noteworthy visé",
   "noteworthy.command.not_jukebox": "Pas de juke-box Noteworthy en %s, %s, %s",
   "noteworthy.command.unknown_song": "Chanson inconnue : %s"

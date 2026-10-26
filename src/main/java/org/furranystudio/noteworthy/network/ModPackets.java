@@ -14,6 +14,7 @@ import net.minecraft.world.phys.Vec3;
 import org.furranystudio.noteworthy.block.NoteJukeboxBlockEntity;
 import org.furranystudio.noteworthy.network.packet.JukeboxStatePayload;
 import org.furranystudio.noteworthy.network.packet.OpenJukeboxPayload;
+import org.furranystudio.noteworthy.network.packet.PauseJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.PlayJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.SeekJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.SongEntry;
@@ -45,6 +46,12 @@ public final class ModPackets {
                 jukebox.stop();
             }
         });
+        ModNetworking.serverbound(PauseJukeboxPayload.TYPE, PauseJukeboxPayload.STREAM_CODEC, (payload, player) -> {
+            NoteJukeboxBlockEntity jukebox = reachableJukebox(player, payload.pos());
+            if (jukebox != null) {
+                jukebox.setPaused(payload.paused());
+            }
+        });
         ModNetworking.serverbound(SeekJukeboxPayload.TYPE, SeekJukeboxPayload.STREAM_CODEC, (payload, player) -> {
             NoteJukeboxBlockEntity jukebox = reachableJukebox(player, payload.pos());
             if (jukebox != null && payload.song().equals(jukebox.song())) {
@@ -69,7 +76,7 @@ public final class ModPackets {
     }
 
     private static JukeboxStatePayload state(NoteJukeboxBlockEntity jukebox) {
-        return new JukeboxStatePayload(jukebox.getBlockPos(), Optional.ofNullable(jukebox.song()), jukebox.tick());
+        return new JukeboxStatePayload(jukebox.getBlockPos(), Optional.ofNullable(jukebox.song()), jukebox.tick(), jukebox.paused());
     }
 
     private static NoteJukeboxBlockEntity reachableJukebox(ServerPlayer player, BlockPos pos) {

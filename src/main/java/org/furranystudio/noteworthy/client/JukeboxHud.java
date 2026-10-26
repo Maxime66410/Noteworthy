@@ -2,7 +2,7 @@
  * File: JukeboxHud.java
  * Author: Maxime66410
  * Created: 2026-10-25
- * Last Modified: 2026-10-25
+ * Last Modified: 2026-10-26
  */
 package org.furranystudio.noteworthy.client;
 
@@ -21,6 +21,7 @@ public final class JukeboxHud {
     private static final int TITLE_COLOR = 0xFFFFFF55;
     private static final int TIME_COLOR = 0xFFA0A0A0;
     private static final String PLAYING_MARK = "♪ ";
+    private static final String PAUSED_MARK = "⏸ ";
 
     private JukeboxHud() {
     }
@@ -42,7 +43,7 @@ public final class JukeboxHud {
         String time = Songs.formatTime(Math.min(jukebox.tick(), jukebox.length())) + " / " + Songs.formatTime(jukebox.length());
         int x = minecraft.getWindow().getGuiScaledWidth() / 2;
         int y = minecraft.getWindow().getGuiScaledHeight() / 2 + CROSSHAIR_OFFSET;
-        graphics.centeredText(font, PLAYING_MARK + line, x, y, TITLE_COLOR);
+        graphics.centeredText(font, (jukebox.paused() ? PAUSED_MARK : PLAYING_MARK) + line, x, y, TITLE_COLOR);
         graphics.centeredText(font, time, x, y + font.lineHeight + 1, TIME_COLOR);
     }
 }

@@ -36,6 +36,7 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
 
     private Identifier song;
     private int tick;
+    private boolean paused;
     private String title = "";
     private String author = "";
     private int length;
@@ -50,6 +51,10 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
 
     public int tick() {
         return tick;
+    }
+
+    public boolean paused() {
+        return paused;
     }
 
     public String title() {
@@ -67,6 +72,7 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
     public void play(Identifier song) {
         this.song = song;
         tick = 0;
+        paused = false;
         changed();
     }
 
@@ -95,9 +101,18 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
         changed();
     }
 
+    public void setPaused(boolean paused) {
+        if (song == null || this.paused == paused) {
+            return;
+        }
+        this.paused = paused;
+        changed();
+    }
+
     public void stop() {
         song = null;
         tick = 0;
+        paused = false;
         changed();
     }
 
@@ -110,7 +125,7 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
     }
 
     void clientTick() {
-        if (song != null && tick < length) {
+        if (song != null && !paused && tick < length) {
             tick++;
         }
     }
@@ -122,6 +137,9 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
         Song playing = Songs.find(level.getServer(), song);
         if (playing == null || tick >= playing.length()) {
             stop();
+            return;
+        }
+        if (paused) {
             return;
         }
         for (Song.Part part : playing.parts()) {
@@ -152,6 +170,7 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
         if (song != null) {
             output.putString("Song", song.toString());
             output.putInt("Tick", tick);
+            output.putBoolean("Paused", paused);
         }
     }
 
@@ -160,6 +179,7 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
         super.loadAdditional(input);
         song = input.getString("Song").map(Identifier::tryParse).orElse(null);
         tick = input.getIntOr("Tick", 0);
+        paused = input.getBooleanOr("Paused", false);
         title = input.getStringOr("Title", "");
         author = input.getStringOr("Author", "");
         length = input.getIntOr("Length", 0);

@@ -26,6 +26,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.furranystudio.noteworthy.network.ModNetworking;
 import org.furranystudio.noteworthy.network.packet.JukeboxStatePayload;
+import org.furranystudio.noteworthy.network.packet.PauseJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.PlayJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.SeekJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.SongEntry;
@@ -58,7 +59,9 @@ public class JukeboxScreen extends Screen {
     private static final int BUTTON_BORDER = 0xFF808080;
     private static final int BUTTON_BORDER_HOVER = 0xFFFFFFFF;
     private static final int PLAY_ICON_HALF = 4;
-    private static final int STOP_ICON_SIZE = 8;
+    private static final int PAUSE_ICON_HEIGHT = 8;
+    private static final int PAUSE_BAR_WIDTH = 3;
+    private static final int PAUSE_GAP = 2;
     private static final String PLAYING_MARK = "♪ ";
 
     private final HeaderAndFooterLayout layout = new HeaderAndFooterLayout(this, HEADER_HEIGHT, FOOTER_HEIGHT);
@@ -66,6 +69,7 @@ public class JukeboxScreen extends Screen {
     private final List<SongEntry> songs;
     private Identifier playing;
     private int tick;
+    private boolean paused;
     private SongList list;
     private Button stop;
     private ProgressBar progress;
@@ -84,6 +88,7 @@ public class JukeboxScreen extends Screen {
     public void applyState(JukeboxStatePayload state) {
         playing = state.song().orElse(null);
         tick = state.tick();
+        paused = state.paused();
         refresh();
     }
 
@@ -129,7 +134,7 @@ public class JukeboxScreen extends Screen {
     @Override
     public void tick() {
         SongEntry current = current();
-        if (current == null) {
+        if (current == null || paused) {
             return;
         }
         tick++;
@@ -309,8 +314,8 @@ public class JukeboxScreen extends Screen {
                     boolean overButton = insidePlayButton(mouseX, mouseY);
                     graphics.fill(buttonX, buttonY, buttonX + PLAY_SIZE, buttonY + PLAY_SIZE, overButton ? BUTTON_BORDER_HOVER : BUTTON_BORDER);
                     graphics.fill(buttonX + 1, buttonY + 1, buttonX + PLAY_SIZE - 1, buttonY + PLAY_SIZE - 1, BUTTON_FILL);
-                    if (isPlaying) {
-                        extractStopIcon(graphics, buttonX, buttonY);
+                    if (isPlaying && !paused) {
+                        extractPauseIcon(graphics, buttonX, buttonY);
                     } else {
                         extractPlayIcon(graphics, buttonX, buttonY);
                     }
@@ -326,9 +331,12 @@ public class JukeboxScreen extends Screen {
                 }
             }
 
-            private void extractStopIcon(GuiGraphicsExtractor graphics, int buttonX, int buttonY) {
-                int offset = (PLAY_SIZE - STOP_ICON_SIZE) / 2;
-                graphics.fill(buttonX + offset, buttonY + offset, buttonX + offset + STOP_ICON_SIZE, buttonY + offset + STOP_ICON_SIZE, TITLE_COLOR);
+            private void extractPauseIcon(GuiGraphicsExtractor graphics, int buttonX, int buttonY) {
+                int x = buttonX + (PLAY_SIZE - PAUSE_BAR_WIDTH * 2 - PAUSE_GAP) / 2;
+                int y = buttonY + (PLAY_SIZE - PAUSE_ICON_HEIGHT) / 2;
+                graphics.fill(x, y, x + PAUSE_BAR_WIDTH, y + PAUSE_ICON_HEIGHT, TITLE_COLOR);
+                int secondX = x + PAUSE_BAR_WIDTH + PAUSE_GAP;
+                graphics.fill(secondX, y, secondX + PAUSE_BAR_WIDTH, y + PAUSE_ICON_HEIGHT, TITLE_COLOR);
             }
 
             @Override
@@ -351,7 +359,7 @@ public class JukeboxScreen extends Screen {
 
             private void toggle() {
                 if (song.id().equals(playing)) {
-                    ModNetworking.sendToServer(new StopJukeboxPayload(pos));
+                    ModNetworking.sendToServer(new PauseJukeboxPayload(pos, !paused));
                 } else {
                     ModNetworking.sendToServer(new PlayJukeboxPayload(pos, song.id()));
                 }
