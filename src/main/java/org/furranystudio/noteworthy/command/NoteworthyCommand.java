@@ -7,6 +7,7 @@
 package org.furranystudio.noteworthy.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
@@ -26,6 +27,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.furranystudio.noteworthy.block.NoteJukeboxBlockEntity;
 import org.furranystudio.noteworthy.song.Song;
+import org.furranystudio.noteworthy.song.SongSort;
 import org.furranystudio.noteworthy.song.Songs;
 
 import java.util.List;
@@ -75,7 +77,27 @@ public final class NoteworthyCommand {
                     .executes(context -> runPause(context, targetedJukebox(context), false))
                     .then(Commands.argument("pos", BlockPosArgument.blockPos())
                         .executes(context -> runPause(context, jukeboxAt(context), false))))
+                .then(sortCommand())
         );
+    }
+
+    private static LiteralArgumentBuilder<CommandSourceStack> sortCommand() {
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal("sort");
+        for (SongSort sort : SongSort.values()) {
+            command.then(Commands.literal(sort.getName())
+                .executes(context -> runSort(context, targetedJukebox(context), sort))
+                .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                    .executes(context -> runSort(context, jukeboxAt(context), sort))));
+        }
+        return command;
+    }
+
+    private static int runSort(CommandContext<CommandSourceStack> context, NoteJukeboxBlockEntity jukebox, SongSort sort) {
+        jukebox.setSort(sort);
+        BlockPos pos = jukebox.getBlockPos();
+        context.getSource().sendSuccess(() -> Component.translatable("noteworthy.command.sort", pos.getX(), pos.getY(), pos.getZ(),
+            sort.displayName()), true);
+        return 1;
     }
 
     private static int runList(CommandContext<CommandSourceStack> context) {

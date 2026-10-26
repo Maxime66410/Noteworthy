@@ -13,10 +13,11 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import org.furranystudio.noteworthy.Noteworthy;
+import org.furranystudio.noteworthy.song.SongSort;
 
 import java.util.Optional;
 
-public record JukeboxStatePayload(BlockPos pos, Optional<Identifier> song, int tick, boolean paused) implements CustomPacketPayload {
+public record JukeboxStatePayload(BlockPos pos, Optional<Identifier> song, int tick, boolean paused, SongSort sort) implements CustomPacketPayload {
 
     public static final Type<JukeboxStatePayload> TYPE = new Type<>(Noteworthy.id("jukebox_state"));
     public static final StreamCodec<ByteBuf, JukeboxStatePayload> STREAM_CODEC = StreamCodec.composite(
@@ -24,6 +25,7 @@ public record JukeboxStatePayload(BlockPos pos, Optional<Identifier> song, int t
         ByteBufCodecs.optional(Identifier.STREAM_CODEC), JukeboxStatePayload::song,
         ByteBufCodecs.VAR_INT, JukeboxStatePayload::tick,
         ByteBufCodecs.BOOL, JukeboxStatePayload::paused,
+        SongSort.STREAM_CODEC, JukeboxStatePayload::sort,
         JukeboxStatePayload::new);
 
     @Override

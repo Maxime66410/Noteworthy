@@ -24,6 +24,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.furranystudio.noteworthy.network.ModPackets;
 import org.furranystudio.noteworthy.song.Song;
+import org.furranystudio.noteworthy.song.SongSort;
 import org.furranystudio.noteworthy.song.Songs;
 
 import java.util.List;
@@ -37,6 +38,7 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
     private Identifier song;
     private int tick;
     private boolean paused;
+    private SongSort sort = SongSort.TITLE;
     private String title = "";
     private String author = "";
     private int length;
@@ -55,6 +57,10 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
 
     public boolean paused() {
         return paused;
+    }
+
+    public SongSort sort() {
+        return sort;
     }
 
     public String title() {
@@ -77,7 +83,7 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
     }
 
     public Song playNext(MinecraftServer server) {
-        List<Song> songs = Songs.get(server);
+        List<Song> songs = sort.sort(Songs.get(server));
         if (songs.isEmpty()) {
             return null;
         }
@@ -106,6 +112,14 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
             return;
         }
         this.paused = paused;
+        changed();
+    }
+
+    public void setSort(SongSort sort) {
+        if (this.sort == sort) {
+            return;
+        }
+        this.sort = sort;
         changed();
     }
 
@@ -167,6 +181,7 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
+        output.putString("Sort", sort.getName());
         if (song != null) {
             output.putString("Song", song.toString());
             output.putInt("Tick", tick);
@@ -180,6 +195,7 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
         song = input.getString("Song").map(Identifier::tryParse).orElse(null);
         tick = input.getIntOr("Tick", 0);
         paused = input.getBooleanOr("Paused", false);
+        sort = SongSort.byName(input.getStringOr("Sort", SongSort.TITLE.getName()));
         title = input.getStringOr("Title", "");
         author = input.getStringOr("Author", "");
         length = input.getIntOr("Length", 0);

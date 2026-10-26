@@ -30,6 +30,8 @@ import org.furranystudio.noteworthy.network.packet.PauseJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.PlayJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.SeekJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.SongEntry;
+import org.furranystudio.noteworthy.network.packet.SortJukeboxPayload;
+import org.furranystudio.noteworthy.song.SongSort;
 import org.furranystudio.noteworthy.network.packet.StopJukeboxPayload;
 import org.furranystudio.noteworthy.song.Songs;
 
@@ -42,7 +44,8 @@ public class JukeboxScreen extends Screen {
     private static final int FOOTER_HEIGHT = 60;
     private static final int ROW_HEIGHT = 24;
     private static final int ROW_WIDTH = 260;
-    private static final int SEARCH_WIDTH = 200;
+    private static final int SEARCH_WIDTH = 156;
+    private static final int SORT_WIDTH = 100;
     private static final int SEARCH_HEIGHT = 15;
     private static final int PROGRESS_WIDTH = 200;
     private static final int PROGRESS_HEIGHT = 18;
@@ -70,7 +73,10 @@ public class JukeboxScreen extends Screen {
     private Identifier playing;
     private int tick;
     private boolean paused;
+    private SongSort sort = SongSort.TITLE;
+    private String query = "";
     private SongList list;
+    private Button sortButton;
     private Button stop;
     private ProgressBar progress;
 
@@ -89,7 +95,12 @@ public class JukeboxScreen extends Screen {
         playing = state.song().orElse(null);
         tick = state.tick();
         paused = state.paused();
+        SongSort previous = sort;
+        sort = state.sort();
         refresh();
+        if (list != null && previous != sort) {
+            list.filter(query);
+        }
     }
 
     @Override
@@ -98,9 +109,13 @@ public class JukeboxScreen extends Screen {
         header.defaultCellSetting().alignHorizontallyCenter();
         header.addChild(new StringWidget(title, font));
         Component searchHint = Component.translatable("noteworthy.jukebox.search");
-        EditBox search = header.addChild(new EditBox(font, SEARCH_WIDTH, SEARCH_HEIGHT, searchHint));
+        LinearLayout searchRow = header.addChild(LinearLayout.horizontal().spacing(4));
+        searchRow.defaultCellSetting().alignVerticallyMiddle();
+        EditBox search = searchRow.addChild(new EditBox(font, SEARCH_WIDTH, SEARCH_HEIGHT, searchHint));
         search.setHint(searchHint.copy().withStyle(EditBox.SEARCH_HINT_STYLE));
         search.setResponder(text -> list.filter(text));
+        sortButton = searchRow.addChild(Button.builder(sortLabel(),
+            button -> ModNetworking.sendToServer(new SortJukeboxPayload(pos, sort.next()))).width(SORT_WIDTH).build());
 
         list = layout.addToContents(new SongList(minecraft));
 
@@ -164,7 +179,12 @@ public class JukeboxScreen extends Screen {
         if (stop != null) {
             stop.active = playing != null;
             progress.active = playing != null;
+            sortButton.setMessage(sortLabel());
         }
+    }
+
+    private Component sortLabel() {
+        return Component.translatable("noteworthy.jukebox.sort", sort.displayName());
     }
 
     private class ProgressBar extends AbstractWidget {
@@ -261,13 +281,15 @@ public class JukeboxScreen extends Screen {
         }
 
         void filter(String text) {
+            query = text;
             Identifier selected = getSelected() == null ? null : getSelected().song.id();
-            String query = text.toLowerCase(Locale.ROOT);
+            String lower = text.toLowerCase(Locale.ROOT);
             replaceEntries(songs.stream()
-                .filter(song -> query.isEmpty()
-                    || song.title().toLowerCase(Locale.ROOT).contains(query)
-                    || song.author().toLowerCase(Locale.ROOT).contains(query)
-                    || song.id().toString().contains(query))
+                .filter(song -> lower.isEmpty()
+                    || song.title().toLowerCase(Locale.ROOT).contains(lower)
+                    || song.author().toLowerCase(Locale.ROOT).contains(lower)
+                    || song.id().toString().contains(lower))
+                .sorted(sort.comparator(SongEntry::title, SongEntry::author, SongEntry::length))
                 .map(Entry::new)
                 .toList());
             refreshScrollAmount();

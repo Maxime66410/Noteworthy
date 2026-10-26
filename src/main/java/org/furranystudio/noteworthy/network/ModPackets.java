@@ -18,6 +18,7 @@ import org.furranystudio.noteworthy.network.packet.PauseJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.PlayJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.SeekJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.SongEntry;
+import org.furranystudio.noteworthy.network.packet.SortJukeboxPayload;
 import org.furranystudio.noteworthy.network.packet.StopJukeboxPayload;
 import org.furranystudio.noteworthy.song.Songs;
 
@@ -52,6 +53,12 @@ public final class ModPackets {
                 jukebox.setPaused(payload.paused());
             }
         });
+        ModNetworking.serverbound(SortJukeboxPayload.TYPE, SortJukeboxPayload.STREAM_CODEC, (payload, player) -> {
+            NoteJukeboxBlockEntity jukebox = reachableJukebox(player, payload.pos());
+            if (jukebox != null) {
+                jukebox.setSort(payload.sort());
+            }
+        });
         ModNetworking.serverbound(SeekJukeboxPayload.TYPE, SeekJukeboxPayload.STREAM_CODEC, (payload, player) -> {
             NoteJukeboxBlockEntity jukebox = reachableJukebox(player, payload.pos());
             if (jukebox != null && payload.song().equals(jukebox.song())) {
@@ -76,7 +83,7 @@ public final class ModPackets {
     }
 
     private static JukeboxStatePayload state(NoteJukeboxBlockEntity jukebox) {
-        return new JukeboxStatePayload(jukebox.getBlockPos(), Optional.ofNullable(jukebox.song()), jukebox.tick(), jukebox.paused());
+        return new JukeboxStatePayload(jukebox.getBlockPos(), Optional.ofNullable(jukebox.song()), jukebox.tick(), jukebox.paused(), jukebox.sort());
     }
 
     private static NoteJukeboxBlockEntity reachableJukebox(ServerPlayer player, BlockPos pos) {

@@ -5,6 +5,10 @@
   "noteworthy.jukebox.idle": "Nothing playing",
   "noteworthy.jukebox.empty": "No songs loaded",
   "noteworthy.jukebox.no_results": "No matching songs",
+  "noteworthy.jukebox.sort": "Sort: %s",
+  "noteworthy.sort.title": "Title",
+  "noteworthy.sort.author": "Author",
+  "noteworthy.sort.duration": "Duration",
   "noteworthy.command.list": "Songs loaded: %s",
   "noteworthy.command.list.entry": "\n- %s: %s (%s)",
   "noteworthy.command.play": "Now playing %s on the jukebox at %s, %s, %s",
@@ -14,6 +18,7 @@
   "noteworthy.command.not_playing": "No song is playing on this jukebox",
   "noteworthy.command.already_paused": "This jukebox is already paused",
   "noteworthy.command.not_paused": "This jukebox is not paused",
+  "noteworthy.command.sort": "Set the sort of the jukebox at %s, %s, %s to %s",
   "noteworthy.command.no_target": "No Noteworthy Jukebox targeted",
   "noteworthy.command.not_jukebox": "There is no Noteworthy Jukebox at %s, %s, %s",
   "noteworthy.command.unknown_song": "Unknown song: %s"
