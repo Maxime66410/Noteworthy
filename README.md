@@ -96,6 +96,10 @@ gradle -p neoforge build
 
 You need Gradle 9.7+ running on JDK 25.
 
+## Contributing
+
+Want to help? Check [CONTRIBUTING.md](CONTRIBUTING.md) first. Translations are done with pull requests on the language files. If you find a security issue, please follow [SECURITY.md](SECURITY.md) instead of opening a public issue. Everyone is expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## Credits
 
 - Made by **Maxime66410** for **FurranyStudio**.
