@@ -45,7 +45,7 @@ To add your own, put a JSON file in `data/<namespace>/noteworthy/songs/` in a da
 }
 ```
 
-A note is its name and octave (`C4`, `F#3`, `Bb4`...), from F#3 to F#5. `:2` makes it last 2 steps, `-` is a rest and `+` plays several notes at once. `tempo` is the number of game ticks per step (20 ticks = 1 second). A full guide of the format is coming.
+A note is its name and octave (`C4`, `F#3`, `Bb4`...), from F#3 to F#5. `:2` makes it last 2 steps, `-` is a rest and `+` plays several notes at once. `tempo` is the number of game ticks per step (20 ticks = 1 second). The full guide of the format, with the list of instruments and more examples, is on the [wiki](https://github.com/Maxime66410/Noteworthy/wiki).
 
 ## Commands (OP only)
 
