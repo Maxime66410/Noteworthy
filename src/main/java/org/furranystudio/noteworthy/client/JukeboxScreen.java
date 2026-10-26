@@ -13,6 +13,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.components.StringWidget;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -44,7 +45,7 @@ import java.util.Locale;
 public class JukeboxScreen extends Screen {
 
     private static final int HEADER_HEIGHT = 44;
-    private static final int FOOTER_HEIGHT = 84;
+    private static final int FOOTER_HEIGHT = 100;
     private static final int ROW_HEIGHT = 24;
     private static final int ROW_WIDTH = 260;
     private static final int SEARCH_WIDTH = 156;
@@ -74,6 +75,7 @@ public class JukeboxScreen extends Screen {
     private static final String PLAYING_MARK = "♪ ";
     private static final String PREVIOUS_MARK = "⏮";
     private static final String NEXT_MARK = "⏭";
+    private static final String ELLIPSIS = "…";
 
     private final HeaderAndFooterLayout layout = new HeaderAndFooterLayout(this, HEADER_HEIGHT, FOOTER_HEIGHT);
     private final BlockPos pos;
@@ -144,6 +146,7 @@ public class JukeboxScreen extends Screen {
 
         LinearLayout footer = layout.addToFooter(LinearLayout.vertical().spacing(6));
         footer.defaultCellSetting().alignHorizontallyCenter();
+        footer.addChild(new InfoLine());
         progress = footer.addChild(new ProgressBar());
         LinearLayout controls = footer.addChild(LinearLayout.horizontal().spacing(4));
         controls.addChild(Button.builder(Component.literal(PREVIOUS_MARK),
@@ -224,6 +227,53 @@ public class JukeboxScreen extends Screen {
 
     private Component sortLabel() {
         return Component.translatable("noteworthy.jukebox.sort", sort.displayName());
+    }
+
+    private class InfoLine extends AbstractWidget {
+
+        private String tooltipText = "";
+
+        InfoLine() {
+            super(0, 0, ROW_WIDTH, font.lineHeight, Component.empty());
+            active = false;
+        }
+
+        @Override
+        protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+            SongList.Entry selected = list.getSelected();
+            SongEntry song = selected != null ? selected.song : current();
+            if (song == null) {
+                showTooltip("");
+                return;
+            }
+            String instruments = String.join(", ", song.instruments().stream()
+                .map(name -> Component.translatable("noteworthy.instrument." + name).getString()).toList());
+            String parts = " · " + Component.translatable(song.parts() == 1 ? "noteworthy.jukebox.part" : "noteworthy.jukebox.parts",
+                song.parts()).getString();
+            String text = instruments + parts;
+            boolean cut = font.width(text) > ROW_WIDTH;
+            if (cut) {
+                int room = ROW_WIDTH - font.width(parts) - font.width(ELLIPSIS);
+                text = font.plainSubstrByWidth(instruments, room).stripTrailing() + ELLIPSIS + parts;
+            }
+            showTooltip(cut ? instruments : "");
+            graphics.centeredText(font, text, getX() + ROW_WIDTH / 2, getY(), MUTED_COLOR);
+        }
+
+        private void showTooltip(String text) {
+            if (!text.equals(tooltipText)) {
+                tooltipText = text;
+                setTooltip(text.isEmpty() ? null : Tooltip.create(Component.literal(text)));
+            }
+        }
+
+        @Override
+        protected void handleCursor(GuiGraphicsExtractor graphics) {
+        }
+
+        @Override
+        protected void updateWidgetNarration(NarrationElementOutput output) {
+        }
     }
 
     private class ProgressBar extends AbstractWidget {
