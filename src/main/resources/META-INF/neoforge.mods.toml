@@ -1,11 +1,12 @@
 license="${mod_license}"
+issueTrackerURL="https://github.com/Maxime66410/Noteworthy/issues"
 
 [[mods]]
 modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
 displayURL="https://furranystudio.fr"
-credits="Maxime66410"
+credits="Maxime66410, FurranyStudio"
 authors="${mod_authors}"
 description='''${mod_description}'''
 

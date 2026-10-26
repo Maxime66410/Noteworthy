@@ -7,8 +7,13 @@
   "authors": [
     "${mod_authors}"
   ],
+  "contributors": [
+    "FurranyStudio"
+  ],
   "contact": {
-    "homepage": "https://furranystudio.fr"
+    "homepage": "https://furranystudio.fr",
+    "sources": "https://github.com/Maxime66410/Noteworthy",
+    "issues": "https://github.com/Maxime66410/Noteworthy/issues"
   },
   "license": "${mod_license}",
   "environment": "*",
