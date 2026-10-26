@@ -2,7 +2,7 @@
  * File: ModBlocks.java
  * Author: Maxime66410
  * Created: 2026-10-24
- * Last Modified: 2026-10-24
+ * Last Modified: 2026-10-26
  */
 package org.furranystudio.noteworthy.block;
 
@@ -24,6 +24,7 @@ public final class ModBlocks {
             .instrument(NoteBlockInstrument.BASS)
             .strength(2.0F, 6.0F)
             .sound(SoundType.WOOD)
+            .noOcclusion()
             .ignitedByLava()));
 
     private ModBlocks() {

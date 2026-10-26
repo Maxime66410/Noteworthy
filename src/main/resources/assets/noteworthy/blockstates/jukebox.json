@@ -1,7 +1,19 @@
 {
   "variants": {
-    "": {
-      "model": "minecraft:block/jukebox"
+    "facing=north": {
+      "model": "noteworthy:block/jukebox"
+    },
+    "facing=east": {
+      "model": "noteworthy:block/jukebox",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "noteworthy:block/jukebox",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "noteworthy:block/jukebox",
+      "y": 270
     }
   }
 }
