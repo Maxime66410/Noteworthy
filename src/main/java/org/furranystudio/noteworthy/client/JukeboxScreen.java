@@ -45,7 +45,8 @@ import java.util.Locale;
 public class JukeboxScreen extends Screen {
 
     private static final int HEADER_HEIGHT = 44;
-    private static final int FOOTER_HEIGHT = 100;
+    private static final int FOOTER_MARGIN = 14;
+    private static final int INFO_GAP = 6;
     private static final int ROW_HEIGHT = 24;
     private static final int ROW_WIDTH = 260;
     private static final int SEARCH_WIDTH = 156;
@@ -77,7 +78,7 @@ public class JukeboxScreen extends Screen {
     private static final String NEXT_MARK = "⏭";
     private static final String ELLIPSIS = "…";
 
-    private final HeaderAndFooterLayout layout = new HeaderAndFooterLayout(this, HEADER_HEIGHT, FOOTER_HEIGHT);
+    private final HeaderAndFooterLayout layout = new HeaderAndFooterLayout(this, HEADER_HEIGHT, FOOTER_MARGIN);
     private final BlockPos pos;
     private final List<SongEntry> songs;
     private Identifier playing;
@@ -93,6 +94,8 @@ public class JukeboxScreen extends Screen {
     private Button modeButton;
     private Button stop;
     private ProgressBar progress;
+    private InfoLine infoLine;
+    private LinearLayout footer;
 
     public JukeboxScreen(BlockPos pos, List<SongEntry> songs, JukeboxStatePayload state) {
         super(Component.translatable("block.noteworthy.jukebox"));
@@ -146,8 +149,10 @@ public class JukeboxScreen extends Screen {
 
         LinearLayout footer = layout.addToFooter(LinearLayout.vertical().spacing(6));
         footer.defaultCellSetting().alignHorizontallyCenter();
-        footer.addChild(new InfoLine());
-        progress = footer.addChild(new ProgressBar());
+        LinearLayout nowPlaying = footer.addChild(LinearLayout.vertical());
+        nowPlaying.defaultCellSetting().alignHorizontallyCenter();
+        infoLine = nowPlaying.addChild(new InfoLine());
+        progress = nowPlaying.addChild(new ProgressBar());
         LinearLayout controls = footer.addChild(LinearLayout.horizontal().spacing(4));
         controls.addChild(Button.builder(Component.literal(PREVIOUS_MARK),
             button -> ModNetworking.sendToServer(new SkipJukeboxPayload(pos, false))).width(SKIP_WIDTH).build()).active = !songs.isEmpty();
@@ -161,6 +166,7 @@ public class JukeboxScreen extends Screen {
         buttons.addChild(Button.builder(Component.translatable("noteworthy.jukebox.settings"),
             button -> minecraft.gui.setScreen(new JukeboxSettingsScreen(this))).build());
         buttons.addChild(Button.builder(CommonComponents.GUI_DONE, button -> onClose()).build());
+        this.footer = footer;
 
         layout.visitWidgets(this::addRenderableWidget);
         repositionElements();
@@ -170,6 +176,10 @@ public class JukeboxScreen extends Screen {
 
     @Override
     protected void repositionElements() {
+        if (footer != null) {
+            footer.arrangeElements();
+            layout.setFooterHeight(footer.getHeight() + FOOTER_MARGIN);
+        }
         layout.arrangeElements();
         if (list != null) {
             list.updateSize(width, layout);
@@ -212,12 +222,31 @@ public class JukeboxScreen extends Screen {
         return songs.stream().filter(song -> song.id().equals(playing)).findFirst().orElse(null);
     }
 
+    private SongEntry infoSong() {
+        SongList.Entry selected = list == null ? null : list.getSelected();
+        return selected != null ? selected.song : current();
+    }
+
     private void refresh() {
         if (stop != null) {
             stop.active = playing != null;
             progress.active = playing != null;
             sortButton.setMessage(sortLabel());
             modeButton.setMessage(modeLabel());
+        }
+        updateFooter();
+    }
+
+    private void updateFooter() {
+        if (footer == null) {
+            return;
+        }
+        int infoHeight = infoSong() == null ? 0 : font.lineHeight + INFO_GAP;
+        int progressHeight = current() == null ? font.lineHeight : PROGRESS_HEIGHT;
+        if (infoLine.getHeight() != infoHeight || progress.getHeight() != progressHeight) {
+            infoLine.setHeight(infoHeight);
+            progress.setHeight(progressHeight);
+            repositionElements();
         }
     }
 
@@ -240,8 +269,7 @@ public class JukeboxScreen extends Screen {
 
         @Override
         protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-            SongList.Entry selected = list.getSelected();
-            SongEntry song = selected != null ? selected.song : current();
+            SongEntry song = infoSong();
             if (song == null) {
                 showTooltip("");
                 return;
@@ -292,8 +320,7 @@ public class JukeboxScreen extends Screen {
                 dragTick = -1;
             }
             if (current == null) {
-                graphics.centeredText(font, Component.translatable("noteworthy.jukebox.idle"), getX() + PROGRESS_WIDTH / 2,
-                    getY() + (PROGRESS_HEIGHT - font.lineHeight) / 2, MUTED_COLOR);
+                graphics.centeredText(font, Component.translatable("noteworthy.jukebox.idle"), getX() + PROGRESS_WIDTH / 2, getY(), MUTED_COLOR);
                 return;
             }
             int shown = dragTick >= 0 ? dragTick : Math.min(tick, current.length());
@@ -348,7 +375,7 @@ public class JukeboxScreen extends Screen {
         }
 
         private int barY() {
-            return getY() + PROGRESS_HEIGHT - BAR_HEIGHT;
+            return getY() + getHeight() - BAR_HEIGHT;
         }
 
         private int tickAt(double mouseX, SongEntry current) {
@@ -383,6 +410,12 @@ public class JukeboxScreen extends Screen {
                 .toList());
             refreshScrollAmount();
             select(selected);
+        }
+
+        @Override
+        public void setSelected(Entry entry) {
+            super.setSelected(entry);
+            updateFooter();
         }
 
         private void select(Identifier id) {
