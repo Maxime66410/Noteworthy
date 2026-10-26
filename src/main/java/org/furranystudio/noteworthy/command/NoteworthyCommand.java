@@ -26,6 +26,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.furranystudio.noteworthy.block.NoteJukeboxBlockEntity;
+import org.furranystudio.noteworthy.song.PlayMode;
 import org.furranystudio.noteworthy.song.Song;
 import org.furranystudio.noteworthy.song.SongSort;
 import org.furranystudio.noteworthy.song.Songs;
@@ -78,6 +79,7 @@ public final class NoteworthyCommand {
                     .then(Commands.argument("pos", BlockPosArgument.blockPos())
                         .executes(context -> runPause(context, jukeboxAt(context), false))))
                 .then(sortCommand())
+                .then(modeCommand())
         );
     }
 
@@ -90,6 +92,25 @@ public final class NoteworthyCommand {
                     .executes(context -> runSort(context, jukeboxAt(context), sort))));
         }
         return command;
+    }
+
+    private static LiteralArgumentBuilder<CommandSourceStack> modeCommand() {
+        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal("mode");
+        for (PlayMode mode : PlayMode.values()) {
+            command.then(Commands.literal(mode.getName())
+                .executes(context -> runMode(context, targetedJukebox(context), mode))
+                .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                    .executes(context -> runMode(context, jukeboxAt(context), mode))));
+        }
+        return command;
+    }
+
+    private static int runMode(CommandContext<CommandSourceStack> context, NoteJukeboxBlockEntity jukebox, PlayMode mode) {
+        jukebox.setMode(mode);
+        BlockPos pos = jukebox.getBlockPos();
+        context.getSource().sendSuccess(() -> Component.translatable("noteworthy.command.mode", pos.getX(), pos.getY(), pos.getZ(),
+            mode.displayName()), true);
+        return 1;
     }
 
     private static int runSort(CommandContext<CommandSourceStack> context, NoteJukeboxBlockEntity jukebox, SongSort sort) {

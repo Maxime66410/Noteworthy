@@ -23,11 +23,16 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.furranystudio.noteworthy.network.ModPackets;
+import org.furranystudio.noteworthy.song.PlayMode;
 import org.furranystudio.noteworthy.song.Song;
 import org.furranystudio.noteworthy.song.SongSort;
 import org.furranystudio.noteworthy.song.Songs;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class NoteJukeboxBlockEntity extends BlockEntity {
 
@@ -39,6 +44,9 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
     private int tick;
     private boolean paused;
     private SongSort sort = SongSort.TITLE;
+    private PlayMode mode = PlayMode.ONCE;
+    private final List<Identifier> deck = new ArrayList<>();
+    private int deckPos = -1;
     private String title = "";
     private String author = "";
     private int length;
@@ -63,6 +71,10 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
         return sort;
     }
 
+    public PlayMode mode() {
+        return mode;
+    }
+
     public String title() {
         return title;
     }
@@ -76,10 +88,16 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
     }
 
     public void play(Identifier song) {
-        this.song = song;
-        tick = 0;
-        paused = false;
-        changed();
+        if (mode == PlayMode.SHUFFLE && level instanceof ServerLevel serverLevel) {
+            List<Song> songs = Songs.get(serverLevel.getServer());
+            if (deck.isEmpty()) {
+                newDeck(songs, song);
+            } else {
+                syncDeck(songs);
+                chooseInDeck(song);
+            }
+        }
+        start(song);
     }
 
     public Song playNext(MinecraftServer server) {
@@ -87,15 +105,90 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
         if (songs.isEmpty()) {
             return null;
         }
+        Song next = mode == PlayMode.SHUFFLE ? nextInDeck(songs) : nextInList(songs);
+        start(next.id());
+        return next;
+    }
+
+    private void start(Identifier song) {
+        this.song = song;
+        tick = 0;
+        paused = false;
+        changed();
+    }
+
+    private Song nextInList(List<Song> songs) {
         int current = -1;
         for (int i = 0; i < songs.size(); i++) {
             if (songs.get(i).id().equals(song)) {
                 current = i;
             }
         }
-        Song next = songs.get((current + 1) % songs.size());
-        play(next.id());
-        return next;
+        return songs.get((current + 1) % songs.size());
+    }
+
+    private Song nextInDeck(List<Song> songs) {
+        if (deck.isEmpty()) {
+            newDeck(songs, null);
+        } else {
+            syncDeck(songs);
+        }
+        if (deckPos + 1 >= deck.size()) {
+            newDeck(songs, null);
+        }
+        deckPos++;
+        Identifier id = deck.get(deckPos);
+        return songs.stream().filter(candidate -> candidate.id().equals(id)).findFirst().orElseThrow();
+    }
+
+    private void newDeck(List<Song> songs, Identifier first) {
+        deck.clear();
+        songs.forEach(candidate -> deck.add(candidate.id()));
+        for (int i = deck.size() - 1; i > 0; i--) {
+            Collections.swap(deck, i, level.getRandom().nextInt(i + 1));
+        }
+        if (first != null) {
+            deck.remove(first);
+            deck.add(0, first);
+            deckPos = 0;
+            return;
+        }
+        deckPos = -1;
+        if (deck.size() > 1 && deck.getFirst().equals(song)) {
+            Identifier last = deck.removeFirst();
+            deck.add(1 + level.getRandom().nextInt(deck.size()), last);
+        }
+    }
+
+    private void syncDeck(List<Song> songs) {
+        Set<Identifier> ids = songs.stream().map(Song::id).collect(Collectors.toSet());
+        for (int i = deck.size() - 1; i >= 0; i--) {
+            if (!ids.contains(deck.get(i))) {
+                deck.remove(i);
+                if (i <= deckPos) {
+                    deckPos--;
+                }
+            }
+        }
+        for (Song candidate : songs) {
+            if (!deck.contains(candidate.id())) {
+                deck.add(deckPos + 1 + level.getRandom().nextInt(deck.size() - deckPos), candidate.id());
+            }
+        }
+    }
+
+    private void chooseInDeck(Identifier song) {
+        if (deckPos >= 0 && deck.get(deckPos).equals(song)) {
+            return;
+        }
+        for (int i = deckPos + 1; i < deck.size(); i++) {
+            if (deck.get(i).equals(song)) {
+                deck.remove(i);
+                break;
+            }
+        }
+        deckPos++;
+        deck.add(deckPos, song);
     }
 
     public void seek(int tick) {
@@ -120,6 +213,19 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
             return;
         }
         this.sort = sort;
+        changed();
+    }
+
+    public void setMode(PlayMode mode) {
+        if (this.mode == mode) {
+            return;
+        }
+        this.mode = mode;
+        deck.clear();
+        deckPos = -1;
+        if (mode == PlayMode.SHUFFLE && song != null && level instanceof ServerLevel serverLevel) {
+            newDeck(Songs.get(serverLevel.getServer()), song);
+        }
         changed();
     }
 
@@ -149,8 +255,12 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
             return;
         }
         Song playing = Songs.find(level.getServer(), song);
-        if (playing == null || tick >= playing.length()) {
+        if (playing == null) {
             stop();
+            return;
+        }
+        if (tick >= playing.length()) {
+            finish(level.getServer());
             return;
         }
         if (paused) {
@@ -164,6 +274,21 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
         }
         tick++;
         setChanged();
+    }
+
+    private void finish(MinecraftServer server) {
+        switch (mode) {
+            case ONCE -> stop();
+            case REPEAT -> {
+                tick = 0;
+                changed();
+            }
+            case LIST, SHUFFLE -> {
+                if (playNext(server) == null) {
+                    stop();
+                }
+            }
+        }
     }
 
     private static void playNotes(ServerLevel level, BlockPos pos, Song.Part part, int[] notes) {
@@ -182,6 +307,11 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         output.putString("Sort", sort.getName());
+        output.putString("Mode", mode.getName());
+        if (!deck.isEmpty()) {
+            output.store("Deck", Identifier.CODEC.listOf(), List.copyOf(deck));
+            output.putInt("DeckPos", deckPos);
+        }
         if (song != null) {
             output.putString("Song", song.toString());
             output.putInt("Tick", tick);
@@ -196,6 +326,10 @@ public class NoteJukeboxBlockEntity extends BlockEntity {
         tick = input.getIntOr("Tick", 0);
         paused = input.getBooleanOr("Paused", false);
         sort = SongSort.byName(input.getStringOr("Sort", SongSort.TITLE.getName()));
+        mode = PlayMode.byName(input.getStringOr("Mode", PlayMode.ONCE.getName()));
+        deck.clear();
+        input.read("Deck", Identifier.CODEC.listOf()).ifPresent(deck::addAll);
+        deckPos = Mth.clamp(input.getIntOr("DeckPos", -1), -1, deck.size() - 1);
         title = input.getStringOr("Title", "");
         author = input.getStringOr("Author", "");
         length = input.getIntOr("Length", 0);
