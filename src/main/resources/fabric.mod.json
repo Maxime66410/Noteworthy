@@ -16,6 +16,7 @@
     "issues": "https://github.com/Maxime66410/Noteworthy/issues"
   },
   "license": "${mod_license}",
+  "icon": "assets/noteworthy/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
