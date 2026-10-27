@@ -2,7 +2,7 @@
  * File: NoteworthyNeoForge.java
  * Author: Maxime66410
  * Created: 2026-10-23
- * Last Modified: 2026-10-25
+ * Last Modified: 2026-10-27
  */
 package org.furranystudio.noteworthy.neoforge;
 
@@ -41,6 +41,10 @@ public class NoteworthyNeoForge {
             if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
                 event.insertAfter(new ItemStack(Items.JUKEBOX), new ItemStack(ModItems.JUKEBOX.get()),
                     CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+            }
+            if (event.getTabKey() == CreativeModeTabs.REDSTONE_BLOCKS) {
+                event.insertAfter(new ItemStack(Items.JUKEBOX), new ItemStack(ModItems.JUKEBOX.get()),
+                    CreativeModeTab.TabVisibility.PARENT_TAB_ONLY);
             }
         });
 

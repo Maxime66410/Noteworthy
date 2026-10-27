@@ -2,7 +2,7 @@
  * File: NoteworthyFabric.java
  * Author: Maxime66410
  * Created: 2026-10-23
- * Last Modified: 2026-10-25
+ * Last Modified: 2026-10-27
  */
 package org.furranystudio.noteworthy.fabric;
 
@@ -32,6 +32,8 @@ public final class NoteworthyFabric implements ModInitializer {
         ModRegistry.registerAll(NoteworthyFabric::registerVanilla);
         FabricNetwork.register();
         CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register(output ->
+            output.insertAfter(Items.JUKEBOX, ModItems.JUKEBOX.get()));
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.REDSTONE_BLOCKS).register(output ->
             output.insertAfter(Items.JUKEBOX, ModItems.JUKEBOX.get()));
 
         ServerLifecycleEvents.SERVER_STARTED.register(Songs::get);
