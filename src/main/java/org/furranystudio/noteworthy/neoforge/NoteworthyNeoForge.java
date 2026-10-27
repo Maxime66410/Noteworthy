@@ -26,6 +26,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 import org.furranystudio.noteworthy.Noteworthy;
 import org.furranystudio.noteworthy.command.NoteworthyCommand;
 import org.furranystudio.noteworthy.item.ModItems;
+import org.furranystudio.noteworthy.network.ModPackets;
 import org.furranystudio.noteworthy.registry.ModRegistry;
 import org.furranystudio.noteworthy.song.Songs;
 
@@ -51,7 +52,7 @@ public class NoteworthyNeoForge {
         NeoForge.EVENT_BUS.addListener((ServerStartedEvent event) -> Songs.get(event.getServer()));
         NeoForge.EVENT_BUS.addListener((OnDatapackSyncEvent event) -> {
             if (event.getPlayer() == null) {
-                Songs.get(event.getPlayerList().getServer());
+                ModPackets.sendSongs(event.getPlayerList().getServer());
             }
         });
 

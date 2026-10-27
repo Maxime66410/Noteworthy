@@ -49,6 +49,7 @@
   "noteworthy.instrument.custom_head": "Tête personnalisée",
   "noteworthy.command.list": "Chansons chargées : %s",
   "noteworthy.command.list.entry": "\n- %s : %s (%s)",
+  "noteworthy.command.reload": "Datapacks rechargés, %s morceaux chargés",
   "noteworthy.command.play": "Lecture de %s sur le juke-box en %s, %s, %s",
   "noteworthy.command.stop": "Juke-box arrêté en %s, %s, %s",
   "noteworthy.command.pause": "Juke-box mis en pause en %s, %s, %s",

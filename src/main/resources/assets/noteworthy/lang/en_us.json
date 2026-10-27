@@ -49,6 +49,7 @@
   "noteworthy.instrument.custom_head": "Custom Head",
   "noteworthy.command.list": "Songs loaded: %s",
   "noteworthy.command.list.entry": "\n- %s: %s (%s)",
+  "noteworthy.command.reload": "Reloaded datapacks, %s songs loaded",
   "noteworthy.command.play": "Now playing %s on the jukebox at %s, %s, %s",
   "noteworthy.command.stop": "Stopped the jukebox at %s, %s, %s",
   "noteworthy.command.pause": "Paused the jukebox at %s, %s, %s",

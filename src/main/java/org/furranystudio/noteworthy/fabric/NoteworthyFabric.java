@@ -19,6 +19,7 @@ import net.minecraft.world.item.Items;
 import org.furranystudio.noteworthy.Noteworthy;
 import org.furranystudio.noteworthy.command.NoteworthyCommand;
 import org.furranystudio.noteworthy.item.ModItems;
+import org.furranystudio.noteworthy.network.ModPackets;
 import org.furranystudio.noteworthy.registry.ModRegistry;
 import org.furranystudio.noteworthy.song.Songs;
 
@@ -37,7 +38,7 @@ public final class NoteworthyFabric implements ModInitializer {
             output.insertAfter(Items.JUKEBOX, ModItems.JUKEBOX.get()));
 
         ServerLifecycleEvents.SERVER_STARTED.register(Songs::get);
-        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> Songs.get(server));
+        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> ModPackets.sendSongs(server));
 
         CommandRegistrationCallback.EVENT.register((dispatcher, buildContext, selection) -> NoteworthyCommand.register(dispatcher));
 

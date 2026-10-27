@@ -2,7 +2,7 @@
  * File: NoteworthyClient.java
  * Author: Maxime66410
  * Created: 2026-10-24
- * Last Modified: 2026-10-26
+ * Last Modified: 2026-10-27
  */
 package org.furranystudio.noteworthy.client;
 
@@ -13,6 +13,7 @@ import org.furranystudio.noteworthy.network.ModNetworking;
 import org.furranystudio.noteworthy.network.packet.JukeboxNotesPayload;
 import org.furranystudio.noteworthy.network.packet.JukeboxStatePayload;
 import org.furranystudio.noteworthy.network.packet.OpenJukeboxPayload;
+import org.furranystudio.noteworthy.network.packet.SongsPayload;
 
 public final class NoteworthyClient {
 
@@ -29,6 +30,14 @@ public final class NoteworthyClient {
             } else if (current instanceof JukeboxSettingsScreen settings && settings.parent().pos().equals(state.pos())) {
                 settings.parent().applyState(state);
                 settings.refresh();
+            }
+        });
+        ModNetworking.setClientHandler(SongsPayload.TYPE, songs -> {
+            Screen current = Minecraft.getInstance().gui.screen();
+            if (current instanceof JukeboxScreen screen) {
+                screen.applySongs(songs.songs());
+            } else if (current instanceof JukeboxSettingsScreen settings) {
+                settings.parent().applySongs(songs.songs());
             }
         });
         ModNetworking.setClientHandler(JukeboxNotesPayload.TYPE, notes -> {

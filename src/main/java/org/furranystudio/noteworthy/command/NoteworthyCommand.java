@@ -2,7 +2,7 @@
  * File: NoteworthyCommand.java
  * Author: Maxime66410
  * Created: 2026-10-25
- * Last Modified: 2026-10-26
+ * Last Modified: 2026-10-27
  */
 package org.furranystudio.noteworthy.command;
 
@@ -25,14 +25,18 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import org.furranystudio.noteworthy.Noteworthy;
 import org.furranystudio.noteworthy.block.NoteJukeboxBlockEntity;
 import org.furranystudio.noteworthy.song.PlayMode;
 import org.furranystudio.noteworthy.song.Song;
 import org.furranystudio.noteworthy.song.SongSort;
 import org.furranystudio.noteworthy.song.Songs;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public final class NoteworthyCommand {
@@ -64,6 +68,8 @@ public final class NoteworthyCommand {
                 .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                 .then(Commands.literal("list")
                     .executes(NoteworthyCommand::runList))
+                .then(Commands.literal("reload")
+                    .executes(NoteworthyCommand::runReload))
                 .then(Commands.literal("play")
                     .then(Commands.argument("song", IdentifierArgument.id())
                         .suggests(SONGS)
@@ -125,6 +131,30 @@ public final class NoteworthyCommand {
                     .executes(context -> runMode(context, jukeboxAt(context), mode))));
         }
         return command;
+    }
+
+    private static int runReload(CommandContext<CommandSourceStack> context) {
+        CommandSourceStack source = context.getSource();
+        MinecraftServer server = source.getServer();
+        PackRepository packs = server.getPackRepository();
+        Collection<String> selected = new ArrayList<>(packs.getSelectedIds());
+        packs.reload();
+        Collection<String> disabled = server.getWorldData().getDataConfiguration().dataPacks().getDisabled();
+        for (String pack : packs.getAvailableIds()) {
+            if (!disabled.contains(pack) && !selected.contains(pack)) {
+                selected.add(pack);
+            }
+        }
+        server.reloadResources(selected).whenComplete((result, error) -> server.execute(() -> {
+            if (error != null) {
+                Noteworthy.LOGGER.warn("[Noteworthy] Couldn't reload datapacks", error);
+                source.sendFailure(Component.translatable("commands.reload.failure"));
+            } else {
+                int count = Songs.get(server).size();
+                source.sendSuccess(() -> Component.translatable("noteworthy.command.reload", count), true);
+            }
+        }));
+        return 1;
     }
 
     private static int runMode(CommandContext<CommandSourceStack> context, NoteJukeboxBlockEntity jukebox, PlayMode mode) {

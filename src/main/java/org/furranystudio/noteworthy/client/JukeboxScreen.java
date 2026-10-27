@@ -80,7 +80,7 @@ public class JukeboxScreen extends Screen {
 
     private final HeaderAndFooterLayout layout = new HeaderAndFooterLayout(this, HEADER_HEIGHT, FOOTER_MARGIN);
     private final BlockPos pos;
-    private final List<SongEntry> songs;
+    private List<SongEntry> songs;
     private Identifier playing;
     private int tick;
     private boolean paused;
@@ -92,6 +92,8 @@ public class JukeboxScreen extends Screen {
     private SongList list;
     private Button sortButton;
     private Button modeButton;
+    private Button previousButton;
+    private Button nextButton;
     private Button stop;
     private ProgressBar progress;
     private InfoLine infoLine;
@@ -131,6 +133,14 @@ public class JukeboxScreen extends Screen {
         }
     }
 
+    public void applySongs(List<SongEntry> songs) {
+        this.songs = songs;
+        if (list != null) {
+            list.filter(query);
+        }
+        refresh();
+    }
+
     @Override
     protected void init() {
         LinearLayout header = layout.addToHeader(LinearLayout.vertical().spacing(4));
@@ -154,12 +164,12 @@ public class JukeboxScreen extends Screen {
         infoLine = nowPlaying.addChild(new InfoLine());
         progress = nowPlaying.addChild(new ProgressBar());
         LinearLayout controls = footer.addChild(LinearLayout.horizontal().spacing(4));
-        controls.addChild(Button.builder(Component.literal(PREVIOUS_MARK),
-            button -> ModNetworking.sendToServer(new SkipJukeboxPayload(pos, false))).width(SKIP_WIDTH).build()).active = !songs.isEmpty();
+        previousButton = controls.addChild(Button.builder(Component.literal(PREVIOUS_MARK),
+            button -> ModNetworking.sendToServer(new SkipJukeboxPayload(pos, false))).width(SKIP_WIDTH).build());
         stop = controls.addChild(Button.builder(Component.translatable("noteworthy.jukebox.stop"),
             button -> ModNetworking.sendToServer(new StopJukeboxPayload(pos))).width(STOP_WIDTH).build());
-        controls.addChild(Button.builder(Component.literal(NEXT_MARK),
-            button -> ModNetworking.sendToServer(new SkipJukeboxPayload(pos, true))).width(SKIP_WIDTH).build()).active = !songs.isEmpty();
+        nextButton = controls.addChild(Button.builder(Component.literal(NEXT_MARK),
+            button -> ModNetworking.sendToServer(new SkipJukeboxPayload(pos, true))).width(SKIP_WIDTH).build());
         modeButton = controls.addChild(Button.builder(modeLabel(),
             button -> ModNetworking.sendToServer(new ModeJukeboxPayload(pos, mode.next()))).width(MODE_WIDTH).build());
         LinearLayout buttons = footer.addChild(LinearLayout.horizontal().spacing(4));
@@ -237,6 +247,8 @@ public class JukeboxScreen extends Screen {
         if (stop != null) {
             stop.active = playing != null;
             progress.active = playing != null;
+            previousButton.active = !songs.isEmpty();
+            nextButton.active = !songs.isEmpty();
             sortButton.setMessage(sortLabel());
             modeButton.setMessage(modeLabel());
         }
