@@ -2,10 +2,11 @@
  * File: JukeboxSettingsScreen.java
  * Author: Maxime66410
  * Created: 2026-10-26
- * Last Modified: 2026-10-26
+ * Last Modified: 2026-10-27
  */
 package org.furranystudio.noteworthy.client;
 
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.StringWidget;
@@ -65,6 +66,13 @@ public class JukeboxSettingsScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    @Override
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+        super.extractBackground(graphics, mouseX, mouseY, a);
+        MenuBands.extract(graphics, width, height, layout.getHeaderHeight(), layout.getFooterHeight());
+        MenuBands.extractSeparators(graphics, width, height, layout.getHeaderHeight(), layout.getFooterHeight());
     }
 
     @Override

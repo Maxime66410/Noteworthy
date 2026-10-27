@@ -2,7 +2,7 @@
  * File: JukeboxScreen.java
  * Author: Maxime66410
  * Created: 2026-10-24
- * Last Modified: 2026-10-26
+ * Last Modified: 2026-10-27
  */
 package org.furranystudio.noteworthy.client;
 
@@ -204,6 +204,12 @@ public class JukeboxScreen extends Screen {
             playing = null;
             refresh();
         }
+    }
+
+    @Override
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+        super.extractBackground(graphics, mouseX, mouseY, a);
+        MenuBands.extract(graphics, width, height, layout.getHeaderHeight(), layout.getFooterHeight());
     }
 
     @Override
