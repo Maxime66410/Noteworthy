@@ -1,4 +1,6 @@
-# Noteworthy
+<p>
+  <img src="src/main/resources/assets/noteworthy/logo.png" alt="Noteworthy">
+</p>
 
 Noteworthy is a Minecraft mod for Forge, NeoForge and Fabric that adds a jukebox playing note block songs. The songs are simple JSON files loaded from datapacks, so anyone can add their own without touching the code.
 
