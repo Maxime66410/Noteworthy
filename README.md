@@ -2,6 +2,8 @@
 
 Noteworthy is a Minecraft mod for Forge, NeoForge and Fabric that adds a jukebox playing note block songs. The songs are simple JSON files loaded from datapacks, so anyone can add their own without touching the code.
 
+Noteworthy comes from [Avali Nexus](https://github.com/Maxime66410/AvaliNexus): its song player was taken out of the mod and made into a standalone one, so it can be used without the rest of Avali Nexus.
+
 ## What's in the mod
 
 **The Noteworthy Jukebox**
