@@ -33,7 +33,7 @@ Looking at a jukebox that's playing shows the song and its time under your cross
 
 The mod comes with 16 public domain songs: Brahms' Lullaby, Can-Can, Canon in D, Eine kleine Nachtmusik, Frère Jacques, Für Elise, Greensleeves, Gymnopédie No. 1, In the Hall of the Mountain King, Jingle Bells, Korobeiniki, Morning Mood, Ode to Joy, Scarborough Fair, Turkish March and Twinkle Twinkle Little Star.
 
-To add your own, put a JSON file in `data/<namespace>/noteworthy/songs/` in a datapack and run `/reload`. Here's a small one:
+To add your own, put a JSON file in `data/<namespace>/noteworthy/songs/` in a datapack and run `/noteworthy reload`. Here's a small one:
 
 ```json
 {
@@ -58,6 +58,7 @@ Without `[pos]`, the commands act on the jukebox you're looking at.
 | Command | What it does |
 |---|---|
 | `/noteworthy list` | Lists all the loaded songs |
+| `/noteworthy reload` | Reloads the datapacks and the songs |
 | `/noteworthy play <song> [pos]` | Plays a song |
 | `/noteworthy stop [pos]` | Stops the jukebox |
 | `/noteworthy pause [pos]` | Pauses the song |
